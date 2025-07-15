@@ -11,7 +11,7 @@ from spec_server.server import create_server
 
 def test_version():
     """Test that version is defined."""
-    assert __version__ == "0.1.0"
+    assert __version__ == "v0.1.0"
 
 
 def test_author():
