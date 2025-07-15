@@ -57,7 +57,7 @@ def main() -> None:
     elif transport == "sse":
         # Run with SSE transport
         # Note: SSE support may vary by FastMCP version
-        if hasattr(server, 'run_sse'):
+        if hasattr(server, "run_sse"):
             server.run_sse(port=port)  # type: ignore
         else:
             print("SSE transport not supported in this FastMCP version")
