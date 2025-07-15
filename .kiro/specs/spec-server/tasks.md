@@ -9,7 +9,7 @@
   - _Requirements: 8.4, 8.5_
 
 - [ ] 2. Implement core data models
-- [ ] 2.1 Create Pydantic models for spec entities
+- [x] 2.1 Create Pydantic models for spec entities
   - Implement Phase, TaskStatus, Spec, SpecMetadata, Task, and DocumentTemplate models
   - Add validation rules and helper methods to models
   - Write unit tests for model validation and serialization
