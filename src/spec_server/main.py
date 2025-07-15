@@ -9,7 +9,7 @@ from pathlib import Path
 from spec_server.server import create_server
 
 
-def main():
+def main() -> None:
     """Main entry point for the spec-server application."""
     # Handle help
     if len(sys.argv) > 1 and sys.argv[1] in ["-h", "--help", "help"]:
@@ -56,7 +56,12 @@ def main():
         server.run()
     elif transport == "sse":
         # Run with SSE transport
-        server.run_sse(port=port)
+        # Note: SSE support may vary by FastMCP version
+        if hasattr(server, 'run_sse'):
+            server.run_sse(port=port)  # type: ignore
+        else:
+            print("SSE transport not supported in this FastMCP version")
+            sys.exit(1)
     else:
         print(f"Unknown transport: {transport}")
         print("Usage: spec-server [stdio|sse] [port]")
