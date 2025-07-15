@@ -29,7 +29,7 @@
   - Write unit tests for all SpecManager operations
   - _Requirements: 1.1, 1.4, 6.3, 6.5_
 
-- [ ] 3.2 Implement DocumentGenerator class
+- [x] 3.2 Implement DocumentGenerator class
   - Create document templates for requirements, design, and tasks formats
   - Implement EARS format generation for requirements documents
   - Add document structure validation and formatting
