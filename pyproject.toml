@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clean-python-template"
+version = "0.1.0"
+description = "A clean template for Python projects"
+authors = [
+    { name = "Your Name", email = "you@example.com" },
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "typer>=0.9.0",
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+]
+
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-cov>=4.1.0",
+    "flake8>=6.1.0",
+    "black>=23.11.0",
+    "mypy>=1.7.0",
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.4.7",
+    "bandit>=1.7.5",
+
+    "uv>=0.1.0",
+    "build",
+    "twine",
+    "pre-commit>=3.6.0",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=src/clean_python_template --cov-report=term-missing --cov-fail-under=80"
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.run]
+source = ["src/clean_python_template"]
+omit = [
+    "src/clean_python_template/cli/main.py",
+    "src/clean_python_template/server/main.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 88
+
+[tool.bandit]
+exclude_dirs = ["tests"]
