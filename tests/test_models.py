@@ -13,6 +13,8 @@ from spec_server.models import (
     DEFAULT_REQUIREMENTS_TEMPLATE,
     DEFAULT_TASKS_TEMPLATE,
     DocumentTemplate,
+    FileReference,
+    FileReferenceResolver,
     Phase,
     Spec,
     SpecMetadata,
@@ -296,3 +298,338 @@ class TestDefaultTemplates:
         assert "Implementation Plan" in template.sections
         assert template.format_rules["format"] == "numbered checkboxes"
         assert template.format_rules["max_hierarchy"] == 2
+
+
+class TestFileReference:
+    """Test FileReference model."""
+
+    def test_file_reference_creation(self):
+        """Test creating a FileReference."""
+        file_ref = FileReference(
+            reference_text="#[[file:test.md]]",
+            file_path=Path("test.md"),
+            resolved_content="Test content",
+            exists=True,
+        )
+
+        assert file_ref.reference_text == "#[[file:test.md]]"
+        assert file_ref.file_path == Path("test.md")
+        assert file_ref.resolved_content == "Test content"
+        assert file_ref.exists is True
+        assert file_ref.error_message is None
+
+    def test_file_reference_defaults(self):
+        """Test FileReference with default values."""
+        file_ref = FileReference(
+            reference_text="#[[file:test.md]]", file_path=Path("test.md")
+        )
+
+        assert file_ref.resolved_content is None
+        assert file_ref.exists is False
+        assert file_ref.error_message is None
+
+    def test_file_reference_validation_empty_text(self):
+        """Test FileReference validation with empty reference text."""
+        with pytest.raises(ValidationError) as exc_info:
+            FileReference(reference_text="", file_path=Path("test.md"))
+
+        assert "Reference text cannot be empty" in str(exc_info.value)
+
+    def test_file_reference_validation_invalid_format(self):
+        """Test FileReference validation with invalid format."""
+        invalid_formats = [
+            "file:test.md",
+            "#[file:test.md]",
+            "#[[test.md]]",
+            "#[[file:]]",
+            "[[file:test.md]]",
+        ]
+
+        for invalid_format in invalid_formats:
+            with pytest.raises(ValidationError) as exc_info:
+                FileReference(reference_text=invalid_format, file_path=Path("test.md"))
+
+            assert "Reference text must follow format" in str(exc_info.value)
+
+    def test_file_reference_validation_valid_formats(self):
+        """Test FileReference validation with valid formats."""
+        valid_formats = [
+            "#[[file:test.md]]",
+            "#[[file:path/to/file.txt]]",
+            "#[[file:../relative/path.json]]",
+            "#[[file:/absolute/path.yaml]]",
+            "#[[file:file-with-dashes.md]]",
+            "#[[file:file_with_underscores.txt]]",
+        ]
+
+        for valid_format in valid_formats:
+            file_ref = FileReference(
+                reference_text=valid_format, file_path=Path("dummy.md")
+            )
+            assert file_ref.reference_text == valid_format
+
+    def test_file_reference_from_reference_text(self):
+        """Test creating FileReference from reference text."""
+        reference_text = "#[[file:docs/api.md]]"
+        file_ref = FileReference.from_reference_text(reference_text)
+
+        assert file_ref.reference_text == reference_text
+        assert file_ref.file_path == Path("docs/api.md")
+        assert file_ref.resolved_content is None
+        assert file_ref.exists is False
+
+    def test_file_reference_from_reference_text_with_base_path(self):
+        """Test creating FileReference with base path."""
+        reference_text = "#[[file:api.md]]"
+        base_path = Path("/project/docs")
+        file_ref = FileReference.from_reference_text(reference_text, base_path)
+
+        assert file_ref.reference_text == reference_text
+        assert file_ref.file_path == Path("/project/docs/api.md")
+
+    def test_file_reference_from_reference_text_absolute_path(self):
+        """Test creating FileReference with absolute path ignores base path."""
+        reference_text = "#[[file:/absolute/path/api.md]]"
+        base_path = Path("/project/docs")
+        file_ref = FileReference.from_reference_text(reference_text, base_path)
+
+        assert file_ref.file_path == Path("/absolute/path/api.md")
+
+    def test_file_reference_from_reference_text_invalid(self):
+        """Test creating FileReference from invalid reference text."""
+        with pytest.raises(ValueError) as exc_info:
+            FileReference.from_reference_text("invalid format")
+
+        assert "Invalid reference format" in str(exc_info.value)
+
+
+class TestFileReferenceResolver:
+    """Test FileReferenceResolver class."""
+
+    def test_resolver_initialization_default(self):
+        """Test FileReferenceResolver initialization with defaults."""
+        resolver = FileReferenceResolver()
+        assert resolver.base_path == Path.cwd()
+
+    def test_resolver_initialization_with_base_path(self):
+        """Test FileReferenceResolver initialization with base path."""
+        base_path = Path("/project")
+        resolver = FileReferenceResolver(base_path)
+        assert resolver.base_path == base_path
+
+    def test_extract_references_no_references(self):
+        """Test extracting references from content with no references."""
+        resolver = FileReferenceResolver()
+        content = "This is regular content with no file references."
+
+        references = resolver.extract_references(content)
+        assert len(references) == 0
+
+    def test_extract_references_single_reference(self):
+        """Test extracting a single reference from content."""
+        resolver = FileReferenceResolver()
+        content = "See the API documentation: #[[file:api.md]] for details."
+
+        references = resolver.extract_references(content)
+        assert len(references) == 1
+        assert references[0].reference_text == "#[[file:api.md]]"
+        assert references[0].file_path.name == "api.md"
+
+    def test_extract_references_multiple_references(self):
+        """Test extracting multiple references from content."""
+        resolver = FileReferenceResolver()
+        content = """
+        Check the API docs: #[[file:api.md]]
+        And the schema: #[[file:schema/user.json]]
+        Also see: #[[file:../README.md]]
+        """
+
+        references = resolver.extract_references(content)
+        assert len(references) == 3
+
+        expected_files = ["api.md", "schema/user.json", "../README.md"]
+        actual_files = [str(ref.file_path) for ref in references]
+
+        for expected in expected_files:
+            assert any(expected in actual for actual in actual_files)
+
+    def test_extract_references_invalid_format(self):
+        """Test extracting references with invalid format - they should be ignored by regex."""
+        resolver = FileReferenceResolver()
+        content = "Invalid reference: #[[file:]] should be ignored."
+
+        # The regex pattern requires at least one character after 'file:'
+        # so #[[file:]] should not match and should be ignored
+        references = resolver.extract_references(content)
+        assert len(references) == 0
+
+    def test_resolve_reference_existing_file(self, temp_specs_dir):
+        """Test resolving a reference to an existing file."""
+        # Create a test file
+        test_file = temp_specs_dir / "test.md"
+        test_content = "# Test File\n\nThis is test content."
+        test_file.write_text(test_content)
+
+        resolver = FileReferenceResolver(temp_specs_dir)
+        file_ref = FileReference(
+            reference_text="#[[file:test.md]]", file_path=test_file
+        )
+
+        resolved_ref = resolver.resolve_reference(file_ref)
+
+        assert resolved_ref.exists is True
+        assert resolved_ref.resolved_content == test_content
+        assert resolved_ref.error_message is None
+
+    def test_resolve_reference_missing_file(self, temp_specs_dir):
+        """Test resolving a reference to a missing file."""
+        resolver = FileReferenceResolver(temp_specs_dir)
+        file_ref = FileReference(
+            reference_text="#[[file:missing.md]]",
+            file_path=temp_specs_dir / "missing.md",
+        )
+
+        resolved_ref = resolver.resolve_reference(file_ref)
+
+        assert resolved_ref.exists is False
+        assert resolved_ref.resolved_content is None
+        assert "File not found" in resolved_ref.error_message
+
+    def test_resolve_reference_permission_error(self, temp_specs_dir):
+        """Test resolving a reference with permission error."""
+        # Create a file and make it unreadable (Unix-like systems)
+        test_file = temp_specs_dir / "unreadable.md"
+        test_file.write_text("content")
+
+        resolver = FileReferenceResolver(temp_specs_dir)
+        file_ref = FileReference(
+            reference_text="#[[file:unreadable.md]]", file_path=test_file
+        )
+
+        # Try to make file unreadable (may not work on all systems)
+        try:
+            test_file.chmod(0o000)
+            resolved_ref = resolver.resolve_reference(file_ref)
+
+            # Should handle the permission error gracefully
+            assert resolved_ref.exists is False
+            assert "Error reading file" in resolved_ref.error_message
+        finally:
+            # Restore permissions for cleanup
+            try:
+                test_file.chmod(0o644)
+            except:
+                pass
+
+    def test_resolve_all_references(self, temp_specs_dir):
+        """Test resolving multiple references."""
+        # Create test files
+        file1 = temp_specs_dir / "file1.md"
+        file2 = temp_specs_dir / "file2.md"
+        file1.write_text("Content 1")
+        file2.write_text("Content 2")
+
+        resolver = FileReferenceResolver(temp_specs_dir)
+        references = [
+            FileReference(reference_text="#[[file:file1.md]]", file_path=file1),
+            FileReference(reference_text="#[[file:file2.md]]", file_path=file2),
+            FileReference(
+                reference_text="#[[file:missing.md]]",
+                file_path=temp_specs_dir / "missing.md",
+            ),
+        ]
+
+        resolved_refs = resolver.resolve_all_references(references)
+
+        assert len(resolved_refs) == 3
+        assert resolved_refs[0].resolved_content == "Content 1"
+        assert resolved_refs[1].resolved_content == "Content 2"
+        assert resolved_refs[2].exists is False
+
+    def test_substitute_references_with_content(self, temp_specs_dir):
+        """Test substituting references with actual file content."""
+        # Create test file
+        test_file = temp_specs_dir / "api.md"
+        test_content = "# API Documentation\n\nThis is the API."
+        test_file.write_text(test_content)
+
+        resolver = FileReferenceResolver(temp_specs_dir)
+        content = "See the API docs:\n\n#[[file:api.md]]\n\nEnd of document."
+
+        result = resolver.substitute_references(content, resolve_content=True)
+
+        expected = f"See the API docs:\n\n{test_content}\n\nEnd of document."
+        assert result == expected
+
+    def test_substitute_references_with_placeholders(self, temp_specs_dir):
+        """Test substituting references with placeholders."""
+        resolver = FileReferenceResolver(temp_specs_dir)
+        content = "See the API docs: #[[file:api.md]] for details."
+
+        result = resolver.substitute_references(content, resolve_content=False)
+
+        expected = f"See the API docs: [File: {temp_specs_dir / 'api.md'}] for details."
+        assert result == expected
+
+    def test_substitute_references_with_errors(self, temp_specs_dir):
+        """Test substituting references that have errors."""
+        resolver = FileReferenceResolver(temp_specs_dir)
+        content = "See the missing file: #[[file:missing.md]] for details."
+
+        result = resolver.substitute_references(content, resolve_content=True)
+
+        assert "[ERROR:" in result
+        assert "File not found" in result
+
+    def test_validate_references_all_valid(self, temp_specs_dir):
+        """Test validating references with all valid files."""
+        # Create test files
+        file1 = temp_specs_dir / "file1.md"
+        file2 = temp_specs_dir / "file2.md"
+        file1.write_text("Content 1")
+        file2.write_text("Content 2")
+
+        resolver = FileReferenceResolver(temp_specs_dir)
+        content = "File 1: #[[file:file1.md]] and File 2: #[[file:file2.md]]"
+
+        errors = resolver.validate_references(content)
+        assert len(errors) == 0
+
+    def test_validate_references_with_errors(self, temp_specs_dir):
+        """Test validating references with missing files."""
+        resolver = FileReferenceResolver(temp_specs_dir)
+        content = "Missing: #[[file:missing1.md]] and #[[file:missing2.md]]"
+
+        errors = resolver.validate_references(content)
+        assert len(errors) == 2
+        assert all("File not found" in error for error in errors)
+
+    def test_file_reference_pattern_matching(self):
+        """Test the regex pattern matches expected formats."""
+        resolver = FileReferenceResolver()
+        pattern = resolver.FILE_REFERENCE_PATTERN
+
+        # Valid patterns
+        valid_patterns = [
+            "#[[file:test.md]]",
+            "#[[file:path/to/file.txt]]",
+            "#[[file:../relative.json]]",
+            "#[[file:/absolute/path.yaml]]",
+        ]
+
+        for pattern_text in valid_patterns:
+            match = pattern.search(pattern_text)
+            assert match is not None
+            assert match.group(0) == pattern_text
+
+        # Invalid patterns
+        invalid_patterns = [
+            "file:test.md",
+            "#[file:test.md]",
+            "#[[test.md]]",
+            "[[file:test.md]]",
+        ]
+
+        for pattern_text in invalid_patterns:
+            match = pattern.search(pattern_text)
+            assert match is None

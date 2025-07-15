@@ -7,6 +7,7 @@ This module contains all the core data models including:
 - DocumentTemplate models
 """
 
+import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -192,3 +193,169 @@ DEFAULT_TASKS_TEMPLATE = DocumentTemplate(
         "focus": "coding tasks only",
     },
 )
+
+
+class FileReference(BaseModel):
+    """Represents a file reference found in spec documents."""
+
+    reference_text: str = Field(
+        ..., description="Original reference text like '#[[file:path/to/file.md]]'"
+    )
+    file_path: Path = Field(..., description="Parsed file path from the reference")
+    resolved_content: Optional[str] = Field(
+        default=None, description="Content of the referenced file"
+    )
+    exists: bool = Field(
+        default=False, description="Whether the referenced file exists"
+    )
+    error_message: Optional[str] = Field(
+        default=None, description="Error message if file cannot be resolved"
+    )
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @field_validator("reference_text")
+    @classmethod
+    def validate_reference_text(cls, v: str) -> str:
+        """Validate that reference text follows the expected format."""
+        if not v:
+            raise ValueError("Reference text cannot be empty")
+
+        # Check if it matches the expected pattern #[[file:path]]
+        pattern = r"#\[\[file:[^\]]+\]\]"
+        if not re.match(pattern, v):
+            raise ValueError("Reference text must follow format '#[[file:path]]'")
+
+        return v
+
+    @classmethod
+    def from_reference_text(
+        cls, reference_text: str, base_path: Optional[Path] = None
+    ) -> "FileReference":
+        """Create a FileReference from reference text."""
+        # Extract the file path from the reference text
+        match = re.match(r"#\[\[file:([^\]]+)\]\]", reference_text)
+        if not match:
+            raise ValueError(f"Invalid reference format: {reference_text}")
+
+        file_path_str = match.group(1)
+        file_path = Path(file_path_str)
+
+        # Make path relative to base_path if provided
+        if base_path and not file_path.is_absolute():
+            file_path = base_path / file_path
+
+        return cls(reference_text=reference_text, file_path=file_path)
+
+
+class FileReferenceResolver:
+    """Handles parsing and resolution of file references in spec documents."""
+
+    # Regex pattern to match file references: #[[file:path/to/file.ext]]
+    FILE_REFERENCE_PATTERN = re.compile(r"#\[\[file:([^\]]+)\]\]")
+
+    def __init__(self, base_path: Optional[Path] = None):
+        """Initialize the resolver with an optional base path for relative references."""
+        self.base_path = base_path or Path.cwd()
+
+    def extract_references(self, content: str) -> List[FileReference]:
+        """Extract all file references from the given content."""
+        references = []
+
+        for match in self.FILE_REFERENCE_PATTERN.finditer(content):
+            reference_text = match.group(0)
+            try:
+                file_ref = FileReference.from_reference_text(
+                    reference_text, self.base_path
+                )
+                references.append(file_ref)
+            except ValueError as e:
+                # Create a reference with error information
+                file_ref = FileReference(
+                    reference_text=reference_text,
+                    file_path=Path("invalid"),
+                    error_message=str(e),
+                )
+                references.append(file_ref)
+
+        return references
+
+    def resolve_reference(self, file_ref: FileReference) -> FileReference:
+        """Resolve a single file reference by reading its content."""
+        try:
+            if file_ref.file_path.exists() and file_ref.file_path.is_file():
+                with open(file_ref.file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                file_ref.resolved_content = content
+                file_ref.exists = True
+                file_ref.error_message = None
+            else:
+                file_ref.exists = False
+                file_ref.error_message = f"File not found: {file_ref.file_path}"
+
+        except Exception as e:
+            file_ref.exists = False
+            file_ref.error_message = f"Error reading file: {str(e)}"
+
+        return file_ref
+
+    def resolve_all_references(
+        self, references: List[FileReference]
+    ) -> List[FileReference]:
+        """Resolve all file references in the list."""
+        return [self.resolve_reference(ref) for ref in references]
+
+    def substitute_references(self, content: str, resolve_content: bool = True) -> str:
+        """
+        Substitute file references in content with their resolved content.
+
+        Args:
+            content: The content containing file references
+            resolve_content: If True, substitute with file content. If False, substitute with placeholder.
+
+        Returns:
+            Content with file references substituted
+        """
+        references = self.extract_references(content)
+
+        if resolve_content:
+            references = self.resolve_all_references(references)
+
+        result_content = content
+
+        for ref in references:
+            if resolve_content and ref.resolved_content is not None:
+                # Replace with actual file content
+                result_content = result_content.replace(
+                    ref.reference_text, ref.resolved_content
+                )
+            elif resolve_content and ref.error_message:
+                # Replace with error message
+                error_placeholder = f"[ERROR: {ref.error_message}]"
+                result_content = result_content.replace(
+                    ref.reference_text, error_placeholder
+                )
+            else:
+                # Replace with placeholder showing the file path
+                placeholder = f"[File: {ref.file_path}]"
+                result_content = result_content.replace(ref.reference_text, placeholder)
+
+        return result_content
+
+    def validate_references(self, content: str) -> List[str]:
+        """
+        Validate all file references in content and return list of error messages.
+
+        Returns:
+            List of error messages for invalid or missing references
+        """
+        references = self.extract_references(content)
+        references = self.resolve_all_references(references)
+
+        errors = []
+        for ref in references:
+            if ref.error_message:
+                errors.append(f"Reference '{ref.reference_text}': {ref.error_message}")
+
+        return errors
