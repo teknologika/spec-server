@@ -1,0 +1,131 @@
+name: Manual Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (will update pyproject.toml)'
+        required: true
+        type: string
+      create_release:
+        description: 'Create GitHub release'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine toml
+    
+    - name: Update version in pyproject.toml
+      run: |
+        python -c "
+        import toml
+        with open('pyproject.toml', 'r') as f:
+            data = toml.load(f)
+        data['project']['version'] = '${{ github.event.inputs.version }}'
+        with open('pyproject.toml', 'w') as f:
+            toml.dump(data, f)
+        "
+    
+    - name: Update version in __init__.py
+      run: |
+        sed -i 's/__version__ = ".*"/__version__ = "${{ github.event.inputs.version }}"/' src/spec_server/__init__.py
+    
+    - name: Commit version update
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add pyproject.toml src/spec_server/__init__.py
+        git commit -m "Bump version to ${{ github.event.inputs.version }}" || exit 0
+        git push
+    
+    - name: Run tests
+      run: |
+        pip install -e ".[dev]"
+        pytest --cov=spec_server
+        mypy src
+        black --check src tests
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Check package
+      run: |
+        twine check dist/*
+    
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        twine upload dist/*
+    
+    - name: Create GitHub Release
+      if: ${{ github.event.inputs.create_release == 'true' }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        release_name: Release v${{ github.event.inputs.version }}
+        body: |
+          ## spec-server v${{ github.event.inputs.version }}
+          
+          ### Installation
+          
+          ```bash
+          pip install spec-server==${{ github.event.inputs.version }}
+          ```
+          
+          ### Usage
+          
+          ```bash
+          # Run as MCP server
+          spec-server
+          
+          # Get help
+          spec-server --help
+          ```
+          
+          ### What's New
+          
+          - Latest updates and improvements
+          - See commit history for detailed changes
+          
+          ### MCP Client Configuration
+          
+          Add to your `mcp.json`:
+          ```json
+          {
+            "mcpServers": {
+              "spec-server": {
+                "command": "spec-server",
+                "args": ["stdio"],
+                "disabled": false
+              }
+            }
+          }
+          ```
+        draft: false
+        prerelease: false
