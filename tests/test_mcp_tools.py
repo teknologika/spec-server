@@ -579,26 +579,27 @@ See API specification: #[[file:api-spec.md]]
         with pytest.raises(SpecError):
             mcp_tools.complete_task("non-existent", "1")
 
-        with pytest.raises(MCPToolsError):
+        with pytest.raises(SpecError):
             mcp_tools.delete_spec("non-existent")
 
         # Test invalid parameters
-        with pytest.raises(MCPToolsError):
+        with pytest.raises(SpecError):
             mcp_tools.create_spec("", "idea")
 
-        with pytest.raises(MCPToolsError):
+        with pytest.raises(SpecError):
             mcp_tools.create_spec("feature", "")
 
         # Create a spec for further testing
         mcp_tools.create_spec("test-feature", "A test feature")
 
-        with pytest.raises(MCPToolsError):
+        with pytest.raises(SpecError):
             mcp_tools.update_spec_document("test-feature", "invalid-type", "content")
 
-        with pytest.raises(MCPToolsError):
-            mcp_tools.update_spec_document("test-feature", "requirements", "")
+        # Empty content is now allowed
+        result = mcp_tools.update_spec_document("test-feature", "requirements", "")
+        assert result["success"] is True
 
-        with pytest.raises(MCPToolsError):
+        with pytest.raises(SpecError):
             mcp_tools.read_spec_document("test-feature", "invalid-type")
 
 
