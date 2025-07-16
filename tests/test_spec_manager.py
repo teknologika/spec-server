@@ -439,7 +439,7 @@ class TestSpecError:
 
         assert str(error) == "Test error message"
         assert error.message == "Test error message"
-        assert error.error_code == "SPEC_ERROR"
+        assert error.error_code == "INTERNAL_ERROR"
         assert error.details == {}
 
     def test_spec_error_with_code_and_details(self):
