@@ -188,25 +188,85 @@ mypy src
 
 ## Configuration
 
+### Workspace Integration
+
+spec-server features intelligent workspace detection that automatically organizes your specifications with your project files when running in an IDE or project directory.
+
+**How It Works:**
+- **Automatic Detection**: Scans upward from current directory looking for workspace indicators
+- **Smart Placement**: Creates `.specs/` directory at the detected workspace root
+- **Fallback Behavior**: Uses `specs/` directory in current location if no workspace detected
+- **IDE Friendly**: Works seamlessly with VS Code, IntelliJ, Sublime Text, and other editors
+
+**Workspace Indicators:**
+- `.git` (Git repository)
+- `package.json` (Node.js project)
+- `pyproject.toml` (Python project)
+- `Cargo.toml` (Rust project)
+- `go.mod` (Go project)
+- `pom.xml` (Maven project)
+- `.vscode`, `.idea` (IDE configurations)
+- `README.md`, `LICENSE`, `Makefile` (common project files)
+
+**Example Structure:**
+```
+my-project/                 ← Detected workspace root
+├── .git/
+├── src/
+├── package.json
+├── README.md
+└── .specs/                 ← Specs automatically placed here
+    ├── user-auth/
+    │   ├── requirements.md
+    │   ├── design.md
+    │   └── tasks.md
+    ├── data-export/
+    │   └── requirements.md
+    └── .spec-metadata.json
+```
+
+**Benefits:**
+- **Version Control**: Specs can be committed alongside your code
+- **Team Collaboration**: Shared specifications across team members
+- **Context Awareness**: Specs are logically grouped with related projects
+- **IDE Integration**: Specifications appear in your project file tree
+- **Automatic Organization**: No manual directory management required
+
+**Configuration:**
+```bash
+# Enable/disable workspace detection (default: true)
+export SPEC_SERVER_AUTO_DETECT_WORKSPACE=true
+
+# Customize specs directory name in workspace (default: ".specs")
+export SPEC_SERVER_WORKSPACE_SPECS_DIR=".my-specs"
+
+# Customize fallback directory name (default: "specs")
+export SPEC_SERVER_SPECS_DIR="my-specs"
+```
+
 ### Environment Variables
 
-- `SPECS_BASE_PATH`: Base directory for specs (default: "specs")
-- `SPECS_SERVER_PORT`: Default SSE server port (default: 8000)
-- `SPECS_LOG_LEVEL`: Logging level (default: "INFO")
+- `SPEC_SERVER_SPECS_DIR`: Base directory for specs (default: "specs")
+- `SPEC_SERVER_AUTO_DETECT_WORKSPACE`: Enable workspace detection (default: "true")
+- `SPEC_SERVER_WORKSPACE_SPECS_DIR`: Specs directory name in workspace (default: ".specs")
+- `SPEC_SERVER_PORT`: Default SSE server port (default: 8000)
+- `SPEC_SERVER_LOG_LEVEL`: Logging level (default: "INFO")
 
 ### Configuration File
 
-Optional `specs/config.json`:
+Optional `spec-server.json`:
 
 ```json
 {
-  "document_templates": {
-    "requirements": {...},
-    "design": {...},
-    "tasks": {...}
-  },
-  "validation_rules": {...},
-  "file_reference_patterns": [...]
+  "specs_dir": "specs",
+  "auto_detect_workspace": true,
+  "workspace_specs_dir": ".specs",
+  "host": "127.0.0.1",
+  "port": 8000,
+  "transport": "stdio",
+  "log_level": "INFO",
+  "auto_backup": true,
+  "cache_enabled": true
 }
 ```
 
