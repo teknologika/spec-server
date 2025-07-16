@@ -4,7 +4,6 @@ Unit tests for SpecManager class.
 
 import json
 import shutil
-from pathlib import Path
 
 import pytest
 
