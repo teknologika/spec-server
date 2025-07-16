@@ -21,7 +21,8 @@ def temp_specs_dir():
     import shutil
 
     shutil.rmtree(temp_dir, ignore_errors=True)
-    
+
+
 # Keep the old fixture name for backward compatibility
 @pytest.fixture
 def temp_spec_dir():

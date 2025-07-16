@@ -103,7 +103,7 @@ class TestMCPTools:
         """Test reading document from non-existent spec."""
         with pytest.raises(SpecError) as exc_info:
             mcp_tools.read_spec_document("non-existent", "requirements")
-        
+
         assert exc_info.value.error_code == ErrorCode.SPEC_NOT_FOUND
 
     def test_read_spec_document_invalid_type(self, mcp_tools):
