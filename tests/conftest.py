@@ -2,28 +2,67 @@
 Pytest configuration and fixtures for spec-server tests.
 """
 
-import shutil
 import tempfile
+import pytest
 from pathlib import Path
 
-import pytest
+from tests.fixtures import SpecTestFixtures, MockFileSystem, TestDataGenerator
+from spec_server.mcp_tools import MCPTools
 
 
 @pytest.fixture
-def temp_specs_dir():
-    """Create a temporary directory for specs during testing."""
-    temp_dir = tempfile.mkdtemp()
-    yield Path(temp_dir)
-    shutil.rmtree(temp_dir)
+def temp_spec_dir():
+    """Provide a temporary directory for spec testing."""
+    temp_dir = Path(tempfile.mkdtemp())
+    yield temp_dir
+    
+    # Cleanup
+    import shutil
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @pytest.fixture
-def sample_spec_data():
-    """Provide sample spec data for testing."""
-    return {
-        "feature_name": "test-feature",
-        "initial_idea": "A test feature for unit testing purposes",
-        "requirements": "# Test Requirements\n\nThis is a test requirements document.",
-        "design": "# Test Design\n\nThis is a test design document.",
-        "tasks": "# Test Tasks\n\n- [ ] 1. First test task\n- [ ] 2. Second test task",
-    }
+def mcp_tools(temp_spec_dir):
+    """Provide MCPTools instance with temporary directory."""
+    return MCPTools(base_path=temp_spec_dir)
+
+
+@pytest.fixture
+def spec_fixtures(temp_spec_dir):
+    """Provide SpecTestFixtures instance."""
+    fixtures = SpecTestFixtures(base_path=temp_spec_dir)
+    yield fixtures
+    fixtures.cleanup()
+
+
+@pytest.fixture
+def sample_spec(spec_fixtures):
+    """Provide a sample specification for testing."""
+    result = spec_fixtures.create_sample_spec("test-feature")
+    return result
+
+
+@pytest.fixture
+def spec_with_tasks(spec_fixtures):
+    """Provide a specification advanced to tasks phase."""
+    result = spec_fixtures.get_spec_with_tasks("task-test-feature")
+    return result
+
+
+@pytest.fixture
+def multiple_specs(spec_fixtures):
+    """Provide multiple sample specifications."""
+    results = spec_fixtures.create_multiple_specs(count=3)
+    return results
+
+
+@pytest.fixture
+def mock_filesystem():
+    """Provide a mock file system for testing."""
+    return MockFileSystem()
+
+
+@pytest.fixture
+def test_data_generator():
+    """Provide test data generator."""
+    return TestDataGenerator()

@@ -189,13 +189,11 @@ def run_server():
             mcp.run_sse(port=port, host=host)
         else:
             logger.error(f"Unknown transport: {sys.argv[1]}")
-            print(f"Unknown transport: {sys.argv[1]}")
-            print("Usage: python -m spec_server [stdio|sse] [port] [host]")
+            logger.error("Usage: python -m spec_server [stdio|sse] [port] [host]")
             sys.exit(1)
     except KeyboardInterrupt:
         logger.info("Server stopped by user (Ctrl+C)")
         sys.exit(0)
     except Exception as e:
         logger.error(f"Failed to start server: {e}", exc_info=True)
-        print(f"Error starting server: {e}")
         sys.exit(1)

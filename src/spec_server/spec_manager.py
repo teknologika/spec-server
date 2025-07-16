@@ -11,22 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .errors import SpecError, ErrorCode
 from .models import Phase, Spec, SpecMetadata
-
-
-class SpecError(Exception):
-    """Base exception for spec-related errors."""
-
-    def __init__(
-        self,
-        message: str,
-        error_code: str = "SPEC_ERROR",
-        details: Optional[Dict] = None,
-    ):
-        super().__init__(message)
-        self.message = message
-        self.error_code = error_code
-        self.details = details or {}
 
 
 class SpecManager:
@@ -74,7 +60,7 @@ class SpecManager:
         except IOError as e:
             raise SpecError(
                 f"Failed to save metadata registry: {str(e)}",
-                error_code="METADATA_SAVE_ERROR",
+                error_code=ErrorCode.INTERNAL_ERROR,
                 details={"file_path": str(self.metadata_file)},
             )
 
@@ -137,7 +123,7 @@ class SpecManager:
         if spec_dir.exists():
             raise SpecError(
                 f"Specification '{feature_name}' already exists",
-                error_code="SPEC_EXISTS",
+                error_code=ErrorCode.SPEC_ALREADY_EXISTS,
                 details={"feature_name": feature_name, "path": str(spec_dir)},
             )
 
@@ -173,7 +159,7 @@ class SpecManager:
                 shutil.rmtree(spec_dir, ignore_errors=True)
             raise SpecError(
                 f"Failed to create specification directory: {str(e)}",
-                error_code="SPEC_CREATION_ERROR",
+                error_code=ErrorCode.INTERNAL_ERROR,
                 details={"feature_name": feature_name, "path": str(spec_dir)},
             )
 
@@ -195,7 +181,7 @@ class SpecManager:
         if not spec_dir.exists():
             raise SpecError(
                 f"Specification '{feature_name}' not found",
-                error_code="SPEC_NOT_FOUND",
+                error_code=ErrorCode.SPEC_NOT_FOUND,
                 details={"feature_name": feature_name, "path": str(spec_dir)},
             )
 
@@ -308,7 +294,7 @@ class SpecManager:
         if not spec_dir.exists():
             raise SpecError(
                 f"Specification '{feature_name}' not found",
-                error_code="SPEC_NOT_FOUND",
+                error_code=ErrorCode.SPEC_NOT_FOUND,
                 details={"feature_name": feature_name, "path": str(spec_dir)},
             )
 
@@ -327,7 +313,7 @@ class SpecManager:
         except OSError as e:
             raise SpecError(
                 f"Failed to delete specification: {str(e)}",
-                error_code="SPEC_DELETION_ERROR",
+                error_code=ErrorCode.INTERNAL_ERROR,
                 details={"feature_name": feature_name, "path": str(spec_dir)},
             )
 
@@ -344,7 +330,7 @@ class SpecManager:
         if not spec_dir.exists():
             raise SpecError(
                 f"Specification '{feature_name}' not found",
-                error_code="SPEC_NOT_FOUND",
+                error_code=ErrorCode.SPEC_NOT_FOUND,
                 details={"feature_name": feature_name},
             )
 

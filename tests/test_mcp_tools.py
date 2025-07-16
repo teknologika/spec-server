@@ -10,6 +10,7 @@ import pytest
 
 from spec_server.mcp_tools import MCPTools, MCPToolsError
 from spec_server.models import Phase, TaskStatus
+from spec_server.errors import ErrorCode
 
 
 class TestMCPTools:
@@ -41,7 +42,7 @@ class TestMCPTools:
         with pytest.raises(MCPToolsError) as exc_info:
             mcp_tools.create_spec("", "A test feature")
         
-        assert exc_info.value.error_code == "INVALID_FEATURE_NAME"
+        assert exc_info.value.error_code == ErrorCode.SPEC_INVALID_NAME
 
     def test_create_spec_empty_initial_idea(self, mcp_tools):
         """Test spec creation with empty initial idea."""

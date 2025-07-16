@@ -6,10 +6,13 @@ and optional JSON configuration files with validation and defaults.
 """
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 from pydantic import BaseModel, Field, field_validator
+
+logger = logging.getLogger(__name__)
 
 
 class ServerConfig(BaseModel):
@@ -155,7 +158,7 @@ class ConfigManager:
         
         except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
             # Log warning but don't fail - fall back to defaults and env vars
-            print(f"Warning: Could not load configuration file {config_file}: {e}")
+            logger.warning(f"Could not load configuration file {config_file}: {e}")
             return {}
     
     def _find_config_file(self) -> Optional[Path]:
@@ -170,7 +173,7 @@ class ConfigManager:
             if self.config_file.exists():
                 return self.config_file
             else:
-                print(f"Warning: Specified config file {self.config_file} not found")
+                logger.warning(f"Specified config file {self.config_file} not found")
                 return None
         
         # Search default locations
@@ -216,7 +219,7 @@ class ConfigManager:
                     try:
                         config[key] = converter(value)
                     except (ValueError, TypeError) as e:
-                        print(f"Warning: Invalid value for {env_var}: {value} ({e})")
+                        logger.warning(f"Invalid value for {env_var}: {value} ({e})")
                 else:
                     config[config_key] = value
         

@@ -1,0 +1,38 @@
+# Manifest file for spec-server package
+
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+
+# Include configuration files
+include pyproject.toml
+include .gitignore
+
+# Include scripts
+recursive-include scripts *.sh
+recursive-include scripts *.py
+
+# Include documentation
+recursive-include docs *.md
+recursive-include docs *.rst
+recursive-include docs *.txt
+
+# Include test files (for source distribution)
+recursive-include tests *.py
+recursive-include tests *.json
+recursive-include tests *.md
+recursive-include tests *.txt
+
+# Include spec examples
+recursive-include specs *.md
+recursive-include specs *.json
+
+# Exclude development files
+exclude .coverage
+exclude .pytest_cache
+exclude .mypy_cache
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * *.so
+recursive-exclude * .DS_Store

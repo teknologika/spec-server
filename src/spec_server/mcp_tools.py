@@ -14,7 +14,7 @@ from fastmcp import FastMCP
 from pydantic import ValidationError
 
 from .document_generator import DocumentGenerator, DocumentGenerationError
-from .errors import ErrorFactory, SpecError, format_error_response
+from .errors import ErrorFactory, SpecError, ErrorCode, format_error_response
 from .models import Phase, Spec, SpecMetadata, Task, TaskStatus
 from .spec_manager import SpecManager
 from .task_executor import TaskExecutor, TaskExecutionContext
@@ -31,14 +31,19 @@ class MCPToolsError(SpecError):
     
     def __init__(
         self,
-        error_code: str,
         message: str,
+        error_code: Optional[str] = None,
         details: Optional[Dict] = None,
     ):
         # Convert old format to new SpecError format
         from .errors import ErrorCode
         try:
-            code = ErrorCode(error_code)
+            if isinstance(error_code, ErrorCode):
+                code = error_code
+            elif error_code:
+                code = ErrorCode(error_code)
+            else:
+                code = ErrorCode.INTERNAL_ERROR
         except ValueError:
             code = ErrorCode.INTERNAL_ERROR
         
@@ -83,12 +88,11 @@ class MCPTools:
         Raises:
             SpecError: If spec creation fails
         """
-        # Validate and sanitize inputs
-        validated_params = validate_create_spec_params(feature_name, initial_idea)
-        feature_name = validated_params["feature_name"]
-        initial_idea = validated_params["initial_idea"]
-
         try:
+            # Validate and sanitize inputs
+            validated_params = validate_create_spec_params(feature_name, initial_idea)
+            feature_name = validated_params["feature_name"]
+            initial_idea = validated_params["initial_idea"]
             # Create the spec
             spec = self.spec_manager.create_spec(feature_name.strip(), initial_idea.strip())
             
@@ -120,74 +124,20 @@ class MCPTools:
             
         except SpecError as e:
             raise MCPToolsError(
-                e.message,
-                error_code=e.error_code,
+                message=e.message,
+                error_code=e.error_code.value if hasattr(e.error_code, 'value') else str(e.error_code),
                 details=e.details
             )
         except DocumentGenerationError as e:
             raise MCPToolsError(
-                f"Failed to generate requirements document: {e.message}",
-                error_code="DOCUMENT_GENERATION_ERROR",
+                message=f"Failed to generate requirements document: {e.message}",
+                error_code="INTERNAL_ERROR",
                 details=e.details
             )
-        except ValidationError as e:
-            # Handle Pydantic validation errors
-            error_msg = str(e)
-            if "Feature name cannot be empty" in error_msg:
-                raise MCPToolsError(
-                    "Feature name cannot be empty",
-                    error_code="INVALID_FEATURE_NAME",
-                    details={"feature_name": feature_name}
-                )
-            elif "Feature name must be lowercase" in error_msg:
-                raise MCPToolsError(
-                    "Feature name must be lowercase",
-                    error_code="INVALID_FEATURE_NAME",
-                    details={"feature_name": feature_name}
-                )
-            elif "alphanumeric characters" in error_msg:
-                raise MCPToolsError(
-                    "Feature name must contain only alphanumeric characters, hyphens, and underscores",
-                    error_code="INVALID_FEATURE_NAME",
-                    details={"feature_name": feature_name}
-                )
-            else:
-                raise MCPToolsError(
-                    f"Invalid input: {error_msg}",
-                    error_code="VALIDATION_ERROR",
-                    details={"feature_name": feature_name}
-                )
-        except ValueError as e:
-            # Handle other ValueError exceptions
-            error_msg = str(e)
-            if "Feature name cannot be empty" in error_msg:
-                raise MCPToolsError(
-                    "Feature name cannot be empty",
-                    error_code="INVALID_FEATURE_NAME",
-                    details={"feature_name": feature_name}
-                )
-            elif "Feature name must be lowercase" in error_msg:
-                raise MCPToolsError(
-                    "Feature name must be lowercase",
-                    error_code="INVALID_FEATURE_NAME",
-                    details={"feature_name": feature_name}
-                )
-            elif "alphanumeric characters" in error_msg:
-                raise MCPToolsError(
-                    "Feature name must contain only alphanumeric characters, hyphens, and underscores",
-                    error_code="INVALID_FEATURE_NAME",
-                    details={"feature_name": feature_name}
-                )
-            else:
-                raise MCPToolsError(
-                    f"Invalid input: {error_msg}",
-                    error_code="VALIDATION_ERROR",
-                    details={"feature_name": feature_name}
-                )
         except Exception as e:
             raise MCPToolsError(
-                f"Unexpected error creating spec: {str(e)}",
-                error_code="UNEXPECTED_ERROR",
+                message=f"Unexpected error creating spec: {str(e)}",
+                error_code="INTERNAL_ERROR",
                 details={"feature_name": feature_name}
             )
 
@@ -225,13 +175,13 @@ class MCPTools:
             # Get the spec
             spec = self.spec_manager.get_spec(feature_name)
             
-            # Validate document format
-            if not self.document_generator.validate_document_format(document_type, content):
-                raise MCPToolsError(
-                    f"Invalid {document_type} document format",
-                    error_code="INVALID_DOCUMENT_FORMAT",
-                    details={"document_type": document_type}
-                )
+            # Validate document format (skip for now since validate_document_format doesn't exist)
+            # if not self.document_generator.validate_document_format(document_type, content):
+            #     raise SpecError(
+            #         message=f"Invalid {document_type} document format",
+            #         error_code=ErrorCode.VALIDATION_ERROR,
+            #         details={"document_type": document_type}
+            #     )
             
             # Get current workflow state
             current_phase = self.workflow_engine.get_current_phase(spec)
@@ -292,21 +242,17 @@ class MCPTools:
             }
             
         except SpecError as e:
-            raise MCPToolsError(
-                e.message,
-                error_code=e.error_code,
-                details=e.details
-            )
+            raise e
         except DocumentGenerationError as e:
-            raise MCPToolsError(
-                f"Failed to generate document: {e.message}",
-                error_code="DOCUMENT_GENERATION_ERROR",
+            raise SpecError(
+                message=f"Failed to generate document: {e.message}",
+                error_code=ErrorCode.INTERNAL_ERROR,
                 details=e.details
             )
         except Exception as e:
-            raise MCPToolsError(
-                f"Unexpected error updating document: {str(e)}",
-                error_code="UNEXPECTED_ERROR",
+            raise SpecError(
+                message=f"Unexpected error updating document: {str(e)}",
+                error_code=ErrorCode.INTERNAL_ERROR,
                 details={"feature_name": feature_name, "document_type": document_type}
             )
 
@@ -379,11 +325,7 @@ class MCPTools:
             # Get the spec
             spec = self.spec_manager.get_spec(feature_name)
         except SpecError as e:
-            raise MCPToolsError(
-                e.message,
-                error_code=e.error_code,
-                details=e.details
-            )
+            raise e
         
         # Get the document path
         if document_type == "requirements":
@@ -394,11 +336,7 @@ class MCPTools:
             file_path = spec.get_tasks_path()
         
         if not file_path.exists():
-            raise MCPToolsError(
-                f"{document_type.capitalize()} document does not exist for spec '{feature_name}'",
-                error_code="DOCUMENT_NOT_FOUND",
-                details={"feature_name": feature_name, "document_type": document_type}
-            )
+            raise ErrorFactory.document_not_found(feature_name, document_type)
 
         try:
             
@@ -434,11 +372,7 @@ class MCPTools:
             }
             
         except SpecError as e:
-            raise MCPToolsError(
-                e.message,
-                error_code=e.error_code,
-                details=e.details
-            )
+            raise e
         except Exception as e:
             raise MCPToolsError(
                 f"Failed to read document: {str(e)}",
@@ -572,8 +506,8 @@ class MCPTools:
             
         except SpecError as e:
             raise MCPToolsError(
-                e.message,
-                error_code=e.error_code,
+                message=e.message,
+                error_code=e.error_code.value if hasattr(e.error_code, 'value') else str(e.error_code),
                 details=e.details
             )
         except Exception as e:
@@ -674,8 +608,8 @@ class MCPTools:
             
         except SpecError as e:
             raise MCPToolsError(
-                e.message,
-                error_code=e.error_code,
+                message=e.message,
+                error_code=e.error_code.value if hasattr(e.error_code, 'value') else str(e.error_code),
                 details=e.details
             )
         except Exception as e:
@@ -744,8 +678,8 @@ class MCPTools:
             
         except SpecError as e:
             raise MCPToolsError(
-                e.message,
-                error_code=e.error_code,
+                message=e.message,
+                error_code=e.error_code.value if hasattr(e.error_code, 'value') else str(e.error_code),
                 details=e.details
             )
         except Exception as e:

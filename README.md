@@ -21,7 +21,7 @@ spec-server helps AI assistants and developers transform rough feature ideas int
 
 ## Installation
 
-### From PyPI (Coming Soon)
+### From PyPI
 
 ```bash
 pip install spec-server
