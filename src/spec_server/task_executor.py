@@ -7,7 +7,6 @@ tracks completion status, and provides execution context.
 """
 
 import re
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from .models import Spec, Task, TaskStatus
@@ -91,7 +90,7 @@ class TaskExecutor:
         matches = list(self.TASK_PATTERN.finditer(tasks_content))
 
         for match in matches:
-            indent = match.group(1)  # Indentation
+            # indent = match.group(1)  # Indentation (not used currently)
             status_char = match.group(2)  # x, space, or -
             identifier = match.group(3)  # Task number like "1.2"
             description = match.group(4).strip()  # Task description
@@ -114,7 +113,7 @@ class TaskExecutor:
 
             # Clean up identifier (remove trailing dot)
             clean_identifier = identifier.rstrip(".")
-            
+
             # Create task object
             task = Task(
                 identifier=clean_identifier,
@@ -146,7 +145,7 @@ class TaskExecutor:
         """
         # Look for requirements reference in the next few lines after the task
         lines_to_check = content[start_pos:].split("\n")[:5]  # Check next 5 lines
-        
+
         for line in lines_to_check:
             match = self.REQUIREMENTS_REF_PATTERN.search(line)
             if match:
@@ -343,7 +342,9 @@ class TaskExecutor:
         Returns:
             Tuple of (completed_count, total_count)
         """
-        completed = sum(1 for task in tasks if task.status == TaskStatus.COMPLETED.value)
+        completed = sum(
+            1 for task in tasks if task.status == TaskStatus.COMPLETED.value
+        )
         total = len(tasks)
         return completed, total
 

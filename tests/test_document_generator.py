@@ -74,20 +74,20 @@ class TestDocumentGenerator:
         generator = DocumentGenerator()
 
         requirements = """
-        # Requirements Document
-        
+        # Requirements Documen
+
         ## Introduction
-        
+
         This system manages user authentication.
-        
+
         ## Requirements
-        
+
         ### Requirement 1
-        
+
         **User Story:** As a user, I want to login, so that I can access the system
-        
+
         #### Acceptance Criteria
-        
+
         1. WHEN user provides valid credentials THEN system SHALL authenticate user
         2. IF user provides invalid credentials THEN system SHALL reject login
         """
@@ -116,24 +116,24 @@ class TestDocumentGenerator:
         generator = DocumentGenerator()
 
         requirements = """
-        # Requirements Document
-        
+        # Requirements Documen
+
         ## Requirements
-        
+
         ### Requirement 1
-        
+
         **User Story:** As a user, I want to login, so that I can access the system
         """
 
         design = """
-        # Design Document
-        
+        # Design Documen
+
         ## Overview
-        
+
         Authentication system design.
-        
+
         ## Components and Interfaces
-        
+
         **Auth Controller**: Handles authentication requests
         **User Service**: Manages user data
         **Token Manager**: Handles JWT tokens
@@ -173,20 +173,20 @@ class TestDocumentGenerator:
         generator = DocumentGenerator()
 
         valid_requirements = """
-        # Requirements Document
-        
+        # Requirements Documen
+
         ## Introduction
-        
+
         This is a test feature.
-        
+
         ## Requirements
-        
+
         ### Requirement 1
-        
+
         **User Story:** As a user, I want to test, so that I can verify functionality
-        
+
         #### Acceptance Criteria
-        
+
         1. WHEN user performs action THEN system SHALL respond
         """
 
@@ -198,8 +198,8 @@ class TestDocumentGenerator:
         generator = DocumentGenerator()
 
         invalid_requirements = """
-        # Some Document
-        
+        # Some Documen
+
         This is not a proper requirements document.
         """
 
@@ -213,30 +213,30 @@ class TestDocumentGenerator:
         generator = DocumentGenerator()
 
         valid_design = """
-        # Design Document
-        
+        # Design Documen
+
         ## Overview
-        
+
         System overview.
-        
+
         ## Architecture
-        
+
         System architecture.
-        
+
         ## Components and Interfaces
-        
+
         System components.
-        
+
         ## Data Models
-        
+
         Data models.
-        
+
         ## Error Handling
-        
+
         Error handling.
-        
+
         ## Testing Strategy
-        
+
         Testing strategy.
         """
 
@@ -248,10 +248,10 @@ class TestDocumentGenerator:
         generator = DocumentGenerator()
 
         invalid_design = """
-        # Some Document
-        
+        # Some Documen
+
         ## Overview
-        
+
         Missing required sections.
         """
 
@@ -264,7 +264,7 @@ class TestDocumentGenerator:
 
         valid_tasks = """
         # Implementation Plan
-        
+
         - [ ] 1. First task
         - [ ] 2. Second task
         """
@@ -278,7 +278,7 @@ class TestDocumentGenerator:
 
         invalid_tasks = """
         # Some Plan
-        
+
         - First task (no checkbox)
         - Second task (no checkbox)
         """
@@ -316,11 +316,11 @@ class TestDocumentGenerator:
 
         requirements = """
         ### Requirement 1
-        
+
         **User Story:** As a developer, I want to write code, so that I can build features
-        
+
         #### Acceptance Criteria
-        
+
         1. WHEN developer writes code THEN system SHALL compile successfully
         2. IF code has errors THEN system SHALL show error messages
         """
@@ -339,14 +339,14 @@ class TestDocumentGenerator:
         generator = DocumentGenerator()
 
         design = """
-        # Design Document
-        
+        # Design Documen
+
         ## Overview
-        
+
         System overview
-        
+
         ## Components and Interfaces
-        
+
         **Main Controller**: Handles requests
         **Service Layer**: Business logic
         **Data Layer**: Persistence
@@ -420,7 +420,7 @@ class TestDocumentGenerator:
             """
             ## Requirements
             **User Story:** As an admin, I want to manage users, so that I can control access
-            1. IF admin has permissions THEN system SHALL allow user management
+            1. IF admin has permissions THEN system SHALL allow user managemen
             """,
         ]
 

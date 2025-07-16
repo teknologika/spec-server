@@ -3,11 +3,12 @@ Pytest configuration and fixtures for spec-server tests.
 """
 
 import tempfile
-import pytest
 from pathlib import Path
 
-from tests.fixtures import SpecTestFixtures, MockFileSystem, TestDataGenerator
+import pytest
+
 from spec_server.mcp_tools import MCPTools
+from tests.fixtures import MockFileSystem, SpecTestFixtures, TestDataGenerator
 
 
 @pytest.fixture
@@ -15,9 +16,10 @@ def temp_spec_dir():
     """Provide a temporary directory for spec testing."""
     temp_dir = Path(tempfile.mkdtemp())
     yield temp_dir
-    
+
     # Cleanup
     import shutil
+
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 

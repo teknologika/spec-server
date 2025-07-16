@@ -2,9 +2,7 @@
 Main entry point for the spec-server MCP application.
 """
 
-import asyncio
 import sys
-from pathlib import Path
 
 from spec_server.server import create_server
 

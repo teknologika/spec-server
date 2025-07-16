@@ -8,16 +8,14 @@ for testing spec-server functionality.
 import json
 import tempfile
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-import pytest
+from typing import Any, Dict, List, Optional
 
 from spec_server.mcp_tools import MCPTools
-from spec_server.models import Phase, TaskStatus
 
 
 class SpecTestData:
     """Sample specification data for testing."""
-    
+
     # Sample feature ideas
     FEATURE_IDEAS = {
         "user-auth": "Implement user authentication with login, registration, and password reset",
@@ -29,9 +27,9 @@ class SpecTestData:
         "reporting-dashboard": "Build analytics dashboard with charts and metrics",
         "user-management": "Admin panel for user management and role-based access control",
         "payment-processing": "Integrate payment gateway for subscription billing",
-        "audit-logging": "Comprehensive audit logging for security and compliance"
+        "audit-logging": "Comprehensive audit logging for security and compliance",
     }
-    
+
     # Sample requirements document
     SAMPLE_REQUIREMENTS = """# Requirements Document
 
@@ -234,8 +232,10 @@ Standard HTTP status codes with JSON error responses:
     @classmethod
     def get_feature_idea(cls, feature_name: str) -> str:
         """Get a sample feature idea by name."""
-        return cls.FEATURE_IDEAS.get(feature_name, f"Sample feature idea for {feature_name}")
-    
+        return cls.FEATURE_IDEAS.get(
+            feature_name, f"Sample feature idea for {feature_name}"
+        )
+
     @classmethod
     def get_all_feature_names(cls) -> List[str]:
         """Get all available feature names."""
@@ -244,75 +244,83 @@ Standard HTTP status codes with JSON error responses:
 
 class SpecTestFixtures:
     """Test fixtures for creating and managing test specifications."""
-    
+
     def __init__(self, base_path: Optional[Path] = None):
         """Initialize test fixtures with optional base path."""
         self.base_path = base_path or Path(tempfile.mkdtemp())
         self.mcp_tools = MCPTools(base_path=self.base_path)
         self.created_specs: List[str] = []
-    
-    def create_sample_spec(self, feature_name: str, phase: str = "requirements") -> Dict[str, Any]:
+
+    def create_sample_spec(
+        self, feature_name: str, phase: str = "requirements"
+    ) -> Dict[str, Any]:
         """
         Create a sample specification for testing.
-        
+
         Args:
             feature_name: Name of the feature to create
             phase: Phase to advance the spec to ("requirements", "design", "tasks")
-            
+
         Returns:
             Dictionary with spec creation result
         """
         # Get sample idea
         idea = SpecTestData.get_feature_idea(feature_name)
-        
+
         # Create the spec
         result = self.mcp_tools.create_spec(feature_name, idea)
         if result["success"]:
             self.created_specs.append(feature_name)
-        
+
         # Advance to requested phase if needed
         if phase == "design" and result["success"]:
             # Update requirements and advance to design
             self.mcp_tools.update_spec_document(
-                feature_name, "requirements", SpecTestData.SAMPLE_REQUIREMENTS, phase_approval=True
+                feature_name,
+                "requirements",
+                SpecTestData.SAMPLE_REQUIREMENTS,
+                phase_approval=True,
             )
         elif phase == "tasks" and result["success"]:
             # Advance through requirements and design to tasks
             self.mcp_tools.update_spec_document(
-                feature_name, "requirements", SpecTestData.SAMPLE_REQUIREMENTS, phase_approval=True
+                feature_name,
+                "requirements",
+                SpecTestData.SAMPLE_REQUIREMENTS,
+                phase_approval=True,
             )
             self.mcp_tools.update_spec_document(
                 feature_name, "design", SpecTestData.SAMPLE_DESIGN, phase_approval=True
             )
-        
+
         return result
-    
+
     def create_multiple_specs(self, count: int = 5) -> List[Dict[str, Any]]:
         """
         Create multiple sample specifications for testing.
-        
+
         Args:
             count: Number of specs to create
-            
+
         Returns:
             List of spec creation results
         """
         results = []
         feature_names = SpecTestData.get_all_feature_names()[:count]
-        
+
         for feature_name in feature_names:
             result = self.create_sample_spec(feature_name)
             results.append(result)
-        
+
         return results
-    
+
     def create_spec_with_file_references(self, feature_name: str) -> Dict[str, Any]:
         """
         Create a spec with file references for testing.
-        
+
         Args:
             feature_name: Name of the feature to create
-            
+
         Returns:
             Dictionary with spec creation result
         """
@@ -323,20 +331,22 @@ class SpecTestFixtures:
             "info": {"title": "Test API", "version": "1.0.0"},
             "paths": {
                 "/users": {"get": {"summary": "Get users"}},
-                "/auth": {"post": {"summary": "Authenticate user"}}
-            }
+                "/auth": {"post": {"summary": "Authenticate user"}},
+            },
         }
         api_spec_file.write_text(json.dumps(api_spec_content, indent=2))
-        
+
         readme_file = self.base_path / "README.md"
-        readme_file.write_text("# API Documentation\n\nThis is the main API documentation.")
-        
+        readme_file.write_text(
+            "# API Documentation\n\nThis is the main API documentation."
+        )
+
         # Create spec
         result = self.create_sample_spec(feature_name)
-        
+
         if result["success"]:
             # Update requirements with file references
-            requirements_with_refs = f"""# Requirements Document
+            requirements_with_refs = """# Requirements Document
 
 ## Introduction
 
@@ -361,53 +371,54 @@ This feature implements an API based on the OpenAPI specification.
 1. WHEN client calls GET /users THEN system SHALL return user list
 2. WHEN invalid request is made THEN system SHALL return appropriate error
 """
-            
+
             self.mcp_tools.update_spec_document(
                 feature_name, "requirements", requirements_with_refs
             )
-        
+
         return result
-    
+
     def get_spec_with_tasks(self, feature_name: str) -> Dict[str, Any]:
         """
         Get or create a spec advanced to tasks phase.
-        
+
         Args:
             feature_name: Name of the feature
-            
+
         Returns:
             Dictionary with spec information
         """
         # Try to get existing spec
         try:
-            result = self.mcp_tools.read_spec_document(feature_name, "tasks")
+            self.mcp_tools.read_spec_document(feature_name, "tasks")
             return {"success": True, "feature_name": feature_name}
-        except:
+        except Exception:
             # Create new spec advanced to tasks phase
             return self.create_sample_spec(feature_name, phase="tasks")
-    
+
     def cleanup(self):
         """Clean up all created test specifications."""
         for feature_name in self.created_specs:
             try:
                 self.mcp_tools.delete_spec(feature_name)
-            except:
+            except Exception:
                 pass  # Ignore cleanup errors
-        
+
         # Clean up temporary directory
         import shutil
+
         if self.base_path.exists():
             shutil.rmtree(self.base_path, ignore_errors=True)
 
 
 class MockFileSystem:
     """Mock file system for isolated testing."""
-    
+
     def __init__(self):
         """Initialize mock file system."""
         self.files: Dict[str, str] = {}
         self.directories: set = set()
-    
+
     def create_file(self, path: str, content: str):
         """Create a mock file with content."""
         self.files[path] = content
@@ -415,26 +426,26 @@ class MockFileSystem:
         parent = str(Path(path).parent)
         if parent != ".":
             self.directories.add(parent)
-    
+
     def read_file(self, path: str) -> str:
         """Read content from mock file."""
         if path not in self.files:
             raise FileNotFoundError(f"File not found: {path}")
         return self.files[path]
-    
+
     def file_exists(self, path: str) -> bool:
         """Check if mock file exists."""
         return path in self.files
-    
+
     def delete_file(self, path: str):
         """Delete mock file."""
         if path in self.files:
             del self.files[path]
-    
+
     def list_files(self) -> List[str]:
         """List all mock files."""
         return list(self.files.keys())
-    
+
     def clear(self):
         """Clear all mock files and directories."""
         self.files.clear()
@@ -443,28 +454,43 @@ class MockFileSystem:
 
 class TestDataGenerator:
     """Generator for various test data scenarios."""
-    
+
     @staticmethod
     def generate_feature_names(count: int) -> List[str]:
         """Generate a list of valid feature names."""
         base_names = [
-            "user-auth", "data-export", "api-integration", "notification-system",
-            "file-upload", "search-engine", "reporting-dashboard", "user-management",
-            "payment-processing", "audit-logging", "content-management", "workflow-engine",
-            "email-service", "backup-system", "monitoring-dashboard", "cache-layer",
-            "message-queue", "image-processing", "document-converter", "analytics-engine"
+            "user-auth",
+            "data-export",
+            "api-integration",
+            "notification-system",
+            "file-upload",
+            "search-engine",
+            "reporting-dashboard",
+            "user-management",
+            "payment-processing",
+            "audit-logging",
+            "content-management",
+            "workflow-engine",
+            "email-service",
+            "backup-system",
+            "monitoring-dashboard",
+            "cache-layer",
+            "message-queue",
+            "image-processing",
+            "document-converter",
+            "analytics-engine",
         ]
-        
+
         if count <= len(base_names):
             return base_names[:count]
-        
+
         # Generate additional names if needed
         additional = []
         for i in range(count - len(base_names)):
             additional.append(f"feature-{i+1:03d}")
-        
+
         return base_names + additional
-    
+
     @staticmethod
     def generate_feature_ideas(count: int) -> List[str]:
         """Generate a list of feature ideas."""
@@ -488,19 +514,21 @@ class TestDataGenerator:
             "Implement message queue for async processing",
             "Create image processing service with transformations",
             "Build document converter for multiple formats",
-            "Develop analytics engine for data insights"
+            "Develop analytics engine for data insights",
         ]
-        
+
         if count <= len(ideas):
             return ideas[:count]
-        
+
         # Generate additional ideas if needed
         additional = []
         for i in range(count - len(ideas)):
-            additional.append(f"Feature {i+1} implementation with comprehensive functionality")
-        
+            additional.append(
+                f"Feature {i+1} implementation with comprehensive functionality"
+            )
+
         return ideas + additional
-    
+
     @staticmethod
     def generate_unicode_content() -> str:
         """Generate content with Unicode characters for testing."""
@@ -527,7 +555,7 @@ This feature supports international users with Unicode characters:
 2. WHEN special characters are used THEN system SHALL preserve them 🔒
 3. WHEN emoji are included THEN system SHALL display properly 😊
 """
-    
+
     @staticmethod
     def generate_large_content(size_kb: int = 100) -> str:
         """Generate large content for performance testing."""
@@ -538,7 +566,7 @@ This feature supports international users with Unicode characters:
 This is a large document generated for performance testing purposes.
 
 """
-        
+
         # Calculate how many requirements needed to reach target size
         requirement_template = """### Requirement {num}
 
@@ -551,14 +579,14 @@ This is a large document generated for performance testing purposes.
 3. WHEN user interacts with feature {num} THEN system SHALL provide feedback
 
 """
-        
+
         content = base_content
         requirement_num = 1
-        
-        while len(content.encode('utf-8')) < size_kb * 1024:
+
+        while len(content.encode("utf-8")) < size_kb * 1024:
             content += requirement_template.format(num=requirement_num)
             requirement_num += 1
-        
+
         return content
 
 

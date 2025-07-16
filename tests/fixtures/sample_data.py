@@ -96,7 +96,7 @@ Session {
   - [ ] 6.1 Unit tests
   - [ ] 6.2 Integration tests
   - [ ] 6.3 End-to-end tests
-"""
+""",
         },
         {
             "feature_name": "data-export",
@@ -199,8 +199,8 @@ ScheduledExport {
   - [ ] 8.1 Unit tests
   - [ ] 8.2 Integration tests
   - [ ] 8.3 Performance tests
-"""
-        }
+""",
+        },
     ]
 
 
@@ -223,7 +223,6 @@ def hello_world():
     print("Hello, world!")
 ```
 """,
-        
         "code": """// Sample JavaScript code
 function calculateTotal(items) {
   return items.reduce((total, item) => {
@@ -240,7 +239,6 @@ const items = [
 const total = calculateTotal(items);
 console.log(`Total: $${total}`);
 """,
-        
         "data": """id,name,email,role
 1,John Doe,john@example.com,admin
 2,Jane Smith,jane@example.com,user
@@ -248,7 +246,6 @@ console.log(`Total: $${total}`);
 4,Alice Brown,alice@example.com,manager
 5,Charlie Davis,charlie@example.com,user
 """,
-        
         "config": """{
   "server": {
     "port": 8080,
@@ -267,7 +264,7 @@ console.log(`Total: $${total}`);
     "file": "app.log"
   }
 }
-"""
+""",
     }
 
 
@@ -275,31 +272,123 @@ def get_sample_tasks() -> Dict[str, List[Dict]]:
     """Get sample tasks for testing."""
     return {
         "user-authentication": [
-            {"identifier": "1", "title": "Set up project structure", "status": "completed"},
-            {"identifier": "1.1", "title": "Create directory structure", "status": "completed"},
-            {"identifier": "1.2", "title": "Set up dependencies", "status": "completed"},
-            {"identifier": "1.3", "title": "Configure build system", "status": "completed"},
-            {"identifier": "2", "title": "Implement data models", "status": "in_progress"},
+            {
+                "identifier": "1",
+                "title": "Set up project structure",
+                "status": "completed",
+            },
+            {
+                "identifier": "1.1",
+                "title": "Create directory structure",
+                "status": "completed",
+            },
+            {
+                "identifier": "1.2",
+                "title": "Set up dependencies",
+                "status": "completed",
+            },
+            {
+                "identifier": "1.3",
+                "title": "Configure build system",
+                "status": "completed",
+            },
+            {
+                "identifier": "2",
+                "title": "Implement data models",
+                "status": "in_progress",
+            },
             {"identifier": "2.1", "title": "Create User model", "status": "completed"},
-            {"identifier": "2.2", "title": "Create Session model", "status": "in_progress"},
-            {"identifier": "2.3", "title": "Set up database migrations", "status": "not_started"},
-            {"identifier": "3", "title": "Implement authentication service", "status": "not_started"},
-            {"identifier": "3.1", "title": "Implement password hashing", "status": "not_started"},
-            {"identifier": "3.2", "title": "Implement JWT token generation", "status": "not_started"},
-            {"identifier": "3.3", "title": "Implement token validation", "status": "not_started"},
+            {
+                "identifier": "2.2",
+                "title": "Create Session model",
+                "status": "in_progress",
+            },
+            {
+                "identifier": "2.3",
+                "title": "Set up database migrations",
+                "status": "not_started",
+            },
+            {
+                "identifier": "3",
+                "title": "Implement authentication service",
+                "status": "not_started",
+            },
+            {
+                "identifier": "3.1",
+                "title": "Implement password hashing",
+                "status": "not_started",
+            },
+            {
+                "identifier": "3.2",
+                "title": "Implement JWT token generation",
+                "status": "not_started",
+            },
+            {
+                "identifier": "3.3",
+                "title": "Implement token validation",
+                "status": "not_started",
+            },
         ],
         "data-export": [
-            {"identifier": "1", "title": "Set up project structure", "status": "completed"},
-            {"identifier": "1.1", "title": "Create directory structure", "status": "completed"},
-            {"identifier": "1.2", "title": "Set up dependencies", "status": "completed"},
-            {"identifier": "1.3", "title": "Configure build system", "status": "completed"},
-            {"identifier": "2", "title": "Implement data models", "status": "completed"},
-            {"identifier": "2.1", "title": "Create ExportJob model", "status": "completed"},
-            {"identifier": "2.2", "title": "Create ScheduledExport model", "status": "completed"},
-            {"identifier": "2.3", "title": "Set up database migrations", "status": "completed"},
-            {"identifier": "3", "title": "Implement export formatters", "status": "in_progress"},
-            {"identifier": "3.1", "title": "Implement CSV formatter", "status": "completed"},
-            {"identifier": "3.2", "title": "Implement JSON formatter", "status": "in_progress"},
-            {"identifier": "3.3", "title": "Implement Excel formatter", "status": "not_started"},
+            {
+                "identifier": "1",
+                "title": "Set up project structure",
+                "status": "completed",
+            },
+            {
+                "identifier": "1.1",
+                "title": "Create directory structure",
+                "status": "completed",
+            },
+            {
+                "identifier": "1.2",
+                "title": "Set up dependencies",
+                "status": "completed",
+            },
+            {
+                "identifier": "1.3",
+                "title": "Configure build system",
+                "status": "completed",
+            },
+            {
+                "identifier": "2",
+                "title": "Implement data models",
+                "status": "completed",
+            },
+            {
+                "identifier": "2.1",
+                "title": "Create ExportJob model",
+                "status": "completed",
+            },
+            {
+                "identifier": "2.2",
+                "title": "Create ScheduledExport model",
+                "status": "completed",
+            },
+            {
+                "identifier": "2.3",
+                "title": "Set up database migrations",
+                "status": "completed",
+            },
+            {
+                "identifier": "3",
+                "title": "Implement export formatters",
+                "status": "in_progress",
+            },
+            {
+                "identifier": "3.1",
+                "title": "Implement CSV formatter",
+                "status": "completed",
+            },
+            {
+                "identifier": "3.2",
+                "title": "Implement JSON formatter",
+                "status": "in_progress",
+            },
+            {
+                "identifier": "3.3",
+                "title": "Implement Excel formatter",
+                "status": "not_started",
+            },
         ],
     }

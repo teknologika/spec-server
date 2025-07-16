@@ -2,7 +2,6 @@
 Unit tests for spec-server data models.
 """
 
-from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -518,7 +517,7 @@ class TestFileReferenceResolver:
             # Restore permissions for cleanup
             try:
                 test_file.chmod(0o644)
-            except:
+            except Exception:
                 pass
 
     def test_resolve_all_references(self, temp_specs_dir):

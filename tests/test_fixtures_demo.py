@@ -5,11 +5,14 @@ These tests show how to use the various fixtures and utilities provided
 for testing spec-server functionality.
 """
 
-import pytest
 from pathlib import Path
 
+import pytest
+
 from tests.fixtures import (
-    SpecTestData, SpecTestFixtures, MockFileSystem, TestDataGenerator
+    MockFileSystem,
+    SpecTestData,
+    SpecTestFixtures,
 )
 
 
@@ -28,7 +31,7 @@ class TestSpecTestData:
         """Test getting feature ideas by name."""
         idea = SpecTestData.get_feature_idea("user-auth")
         assert "authentication" in idea.lower()
-        
+
         # Test fallback for unknown feature
         unknown_idea = SpecTestData.get_feature_idea("unknown-feature")
         assert "unknown-feature" in unknown_idea
@@ -41,13 +44,13 @@ class TestSpecTestData:
         assert "User Story:" in requirements
         assert "Acceptance Criteria" in requirements
         assert "WHEN" in requirements and "THEN" in requirements
-        
+
         # Test design document
         design = SpecTestData.SAMPLE_DESIGN
         assert "# Design Document" in design
         assert "Architecture" in design
         assert "Components and Interfaces" in design
-        
+
         # Test tasks document
         tasks = SpecTestData.SAMPLE_TASKS
         assert "# Implementation Plan" in tasks
@@ -61,70 +64,72 @@ class TestSpecTestFixtures:
     def test_create_sample_spec(self, temp_spec_dir):
         """Test creating a sample specification."""
         fixtures = SpecTestFixtures(base_path=temp_spec_dir)
-        
+
         result = fixtures.create_sample_spec("test-feature")
-        
+
         assert result["success"] is True
         assert result["spec"]["feature_name"] == "test-feature"
         assert "test-feature" in fixtures.created_specs
-        
+
         # Verify files were created
         spec_dir = temp_spec_dir / "test-feature"
         assert spec_dir.exists()
         assert (spec_dir / "requirements.md").exists()
-        
+
         fixtures.cleanup()
 
     def test_create_multiple_specs(self, temp_spec_dir):
         """Test creating multiple specifications."""
         fixtures = SpecTestFixtures(base_path=temp_spec_dir)
-        
+
         results = fixtures.create_multiple_specs(count=3)
-        
+
         assert len(results) == 3
         assert all(result["success"] for result in results)
         assert len(fixtures.created_specs) == 3
-        
+
         # Verify all specs were created
         for result in results:
             feature_name = result["spec"]["feature_name"]
             spec_dir = temp_spec_dir / feature_name
             assert spec_dir.exists()
-        
+
         fixtures.cleanup()
 
     def test_create_spec_with_file_references(self, temp_spec_dir):
         """Test creating a spec with file references."""
         fixtures = SpecTestFixtures(base_path=temp_spec_dir)
-        
+
         result = fixtures.create_spec_with_file_references("api-test")
-        
+
         assert result["success"] is True
-        
+
         # Verify reference files were created
         assert (temp_spec_dir / "api-spec.json").exists()
         assert (temp_spec_dir / "README.md").exists()
-        
+
         # Verify spec contains file references (read without resolution to see raw references)
-        spec_content = fixtures.mcp_tools.read_spec_document("api-test", "requirements", resolve_references=False)
+        spec_content = fixtures.mcp_tools.read_spec_document(
+            "api-test", "requirements", resolve_references=False
+        )
         assert "#[[file:api-spec.json]]" in spec_content["content"]
         assert "#[[file:README.md]]" in spec_content["content"]
-        
+
         fixtures.cleanup()
 
     def test_fixtures_cleanup(self, temp_spec_dir):
         """Test that fixtures cleanup properly."""
         fixtures = SpecTestFixtures(base_path=temp_spec_dir)
-        
+
         # Create some specs
         fixtures.create_sample_spec("cleanup-test-1")
         fixtures.create_sample_spec("cleanup-test-2")
-        
+
         assert len(fixtures.created_specs) == 2
-        
+
         # Cleanup
         fixtures.cleanup()
-        
+
         # Verify specs were deleted (directory should be cleaned up)
         # Note: The temp directory itself might still exist but should be empty or cleaned
 
@@ -135,39 +140,39 @@ class TestMockFileSystem:
     def test_create_and_read_file(self):
         """Test creating and reading mock files."""
         mock_fs = MockFileSystem()
-        
+
         mock_fs.create_file("test.txt", "Hello, World!")
-        
+
         assert mock_fs.file_exists("test.txt")
         assert mock_fs.read_file("test.txt") == "Hello, World!"
 
     def test_file_not_found(self):
         """Test handling of non-existent files."""
         mock_fs = MockFileSystem()
-        
+
         assert not mock_fs.file_exists("nonexistent.txt")
-        
+
         with pytest.raises(FileNotFoundError):
             mock_fs.read_file("nonexistent.txt")
 
     def test_delete_file(self):
         """Test deleting mock files."""
         mock_fs = MockFileSystem()
-        
+
         mock_fs.create_file("delete-me.txt", "Content")
         assert mock_fs.file_exists("delete-me.txt")
-        
+
         mock_fs.delete_file("delete-me.txt")
         assert not mock_fs.file_exists("delete-me.txt")
 
     def test_list_files(self):
         """Test listing mock files."""
         mock_fs = MockFileSystem()
-        
+
         mock_fs.create_file("file1.txt", "Content 1")
         mock_fs.create_file("file2.txt", "Content 2")
         mock_fs.create_file("dir/file3.txt", "Content 3")
-        
+
         files = mock_fs.list_files()
         assert len(files) == 3
         assert "file1.txt" in files
@@ -177,12 +182,12 @@ class TestMockFileSystem:
     def test_clear_filesystem(self):
         """Test clearing the mock file system."""
         mock_fs = MockFileSystem()
-        
+
         mock_fs.create_file("file1.txt", "Content")
         mock_fs.create_file("file2.txt", "Content")
-        
+
         assert len(mock_fs.list_files()) == 2
-        
+
         mock_fs.clear()
         assert len(mock_fs.list_files()) == 0
 
@@ -193,11 +198,11 @@ class TestDataGeneratorUtility:
     def test_generate_feature_names(self, test_data_generator):
         """Test generating feature names."""
         names = test_data_generator.generate_feature_names(5)
-        
+
         assert len(names) == 5
         assert all(isinstance(name, str) for name in names)
         assert all("-" in name for name in names)  # Should be kebab-case
-        
+
         # Test generating more names than available
         many_names = test_data_generator.generate_feature_names(25)
         assert len(many_names) == 25
@@ -206,7 +211,7 @@ class TestDataGeneratorUtility:
     def test_generate_feature_ideas(self, test_data_generator):
         """Test generating feature ideas."""
         ideas = test_data_generator.generate_feature_ideas(3)
-        
+
         assert len(ideas) == 3
         assert all(isinstance(idea, str) for idea in ideas)
         assert all(len(idea) > 20 for idea in ideas)  # Should be descriptive
@@ -214,7 +219,7 @@ class TestDataGeneratorUtility:
     def test_generate_unicode_content(self, test_data_generator):
         """Test generating Unicode content."""
         content = test_data_generator.generate_unicode_content()
-        
+
         assert "中文" in content  # Chinese
         assert "العربية" in content  # Arabic
         assert "русский" in content  # Russian
@@ -226,11 +231,11 @@ class TestDataGeneratorUtility:
         """Test generating large content."""
         # Generate 10KB content
         content = test_data_generator.generate_large_content(size_kb=10)
-        
+
         # Should be approximately 10KB (allow some variance)
-        content_size = len(content.encode('utf-8'))
+        content_size = len(content.encode("utf-8"))
         assert 9000 <= content_size <= 12000  # 9-12KB range
-        
+
         # Should contain multiple requirements
         assert content.count("### Requirement") >= 5
         assert "User Story:" in content

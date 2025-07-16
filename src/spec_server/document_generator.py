@@ -344,7 +344,7 @@ class DocumentGenerator:
         self, initial_idea: str, feature_name: str, concepts: Dict[str, List[str]]
     ) -> str:
         """Generate the introduction section for requirements."""
-        feature_desc = feature_name if feature_name else "this feature"
+        # Use feature_name directly in the intro text
 
         intro = f"This feature implements {initial_idea.strip()}"
 

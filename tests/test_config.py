@@ -5,13 +5,17 @@ Tests for the configuration management system.
 import json
 import os
 import tempfile
-import pytest
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
+import pytest
 
 from spec_server.config import (
-    ServerConfig, ConfigManager, create_example_config,
-    get_config, reload_config
+    ConfigManager,
+    ServerConfig,
+    create_example_config,
+    get_config,
+    reload_config,
 )
 
 
@@ -21,7 +25,7 @@ class TestServerConfig:
     def test_default_config(self):
         """Test default configuration values."""
         config = ServerConfig()
-        
+
         assert config.host == "127.0.0.1"
         assert config.port == 8000
         assert config.transport == "stdio"
@@ -44,9 +48,9 @@ class TestServerConfig:
             port=9000,
             transport="sse",
             specs_dir="custom_specs",
-            log_level="DEBUG"
+            log_level="DEBUG",
         )
-        
+
         assert config.host == "0.0.0.0"
         assert config.port == 9000
         assert config.transport == "sse"
@@ -62,7 +66,7 @@ class TestServerConfig:
         """Test validation of invalid port."""
         with pytest.raises(ValueError, match="Port must be between"):
             ServerConfig(port=0)
-        
+
         with pytest.raises(ValueError, match="Port must be between"):
             ServerConfig(port=70000)
 
@@ -80,9 +84,10 @@ class TestServerConfig:
         """Test validation of invalid directory paths."""
         with pytest.raises(ValueError, match="Directory path must be"):
             ServerConfig(specs_dir="")
-        
+
         # Pydantic V2 raises ValidationError for type mismatches
         from pydantic import ValidationError
+
         with pytest.raises(ValidationError):
             ServerConfig(backup_dir=None)
 
@@ -90,10 +95,10 @@ class TestServerConfig:
         """Test validation of positive integer fields."""
         with pytest.raises(ValueError, match="Value must be positive"):
             ServerConfig(max_specs=0)
-        
+
         with pytest.raises(ValueError, match="Value must be positive"):
             ServerConfig(max_document_size=-1)
-        
+
         with pytest.raises(ValueError, match="Value must be positive"):
             ServerConfig(cache_size=0)
 
@@ -116,29 +121,25 @@ class TestConfigManager:
     def test_load_config_defaults(self):
         """Test loading config with defaults only."""
         manager = ConfigManager()
-        
+
         # Mock file and env loading to return empty
-        with patch.object(manager, '_load_from_file', return_value={}):
-            with patch.object(manager, '_load_from_env', return_value={}):
+        with patch.object(manager, "_load_from_file", return_value={}):
+            with patch.object(manager, "_load_from_env", return_value={}):
                 config = manager.load_config()
-        
+
         assert isinstance(config, ServerConfig)
         assert config.host == "127.0.0.1"  # Default value
 
     def test_load_config_from_file(self):
         """Test loading config from file."""
-        file_config = {
-            "host": "0.0.0.0",
-            "port": 9000,
-            "transport": "sse"
-        }
-        
+        file_config = {"host": "0.0.0.0", "port": 9000, "transport": "sse"}
+
         manager = ConfigManager()
-        
-        with patch.object(manager, '_load_from_file', return_value=file_config):
-            with patch.object(manager, '_load_from_env', return_value={}):
+
+        with patch.object(manager, "_load_from_file", return_value=file_config):
+            with patch.object(manager, "_load_from_env", return_value={}):
                 config = manager.load_config()
-        
+
         assert config.host == "0.0.0.0"
         assert config.port == 9000
         assert config.transport == "sse"
@@ -147,13 +148,13 @@ class TestConfigManager:
         """Test that environment variables override file config."""
         file_config = {"host": "0.0.0.0", "port": 9000}
         env_config = {"host": "192.168.1.1", "transport": "sse"}
-        
+
         manager = ConfigManager()
-        
-        with patch.object(manager, '_load_from_file', return_value=file_config):
-            with patch.object(manager, '_load_from_env', return_value=env_config):
+
+        with patch.object(manager, "_load_from_file", return_value=file_config):
+            with patch.object(manager, "_load_from_env", return_value=env_config):
                 config = manager.load_config()
-        
+
         assert config.host == "192.168.1.1"  # From env (overrides file)
         assert config.port == 9000  # From file
         assert config.transport == "sse"  # From env
@@ -167,14 +168,14 @@ class TestConfigManager:
             "SPEC_SERVER_SPECS_DIR": "test-specs",
             "SPEC_SERVER_AUTO_BACKUP": "false",
             "SPEC_SERVER_LOG_LEVEL": "debug",
-            "SPEC_SERVER_CACHE_SIZE": "50"
+            "SPEC_SERVER_CACHE_SIZE": "50",
         }
-        
+
         manager = ConfigManager()
-        
+
         with patch.dict(os.environ, env_vars):
             config_data = manager._load_from_env()
-        
+
         assert config_data["host"] == "test-host"
         assert config_data["port"] == 3000
         assert config_data["transport"] == "sse"
@@ -190,7 +191,7 @@ class TestConfigManager:
         assert ConfigManager._parse_bool("1") is True
         assert ConfigManager._parse_bool("yes") is True
         assert ConfigManager._parse_bool("on") is True
-        
+
         assert ConfigManager._parse_bool("false") is False
         assert ConfigManager._parse_bool("False") is False
         assert ConfigManager._parse_bool("0") is False
@@ -202,41 +203,45 @@ class TestConfigManager:
         """Test loading from valid JSON file."""
         config_data = {"host": "test-host", "port": 3000}
         json_content = json.dumps(config_data)
-        
+
         manager = ConfigManager()
-        
+
         with patch("builtins.open", mock_open(read_data=json_content)):
-            with patch.object(manager, '_find_config_file', return_value=Path("test.json")):
+            with patch.object(
+                manager, "_find_config_file", return_value=Path("test.json")
+            ):
                 result = manager._load_from_file()
-        
+
         assert result == config_data
 
     def test_load_from_file_invalid_json(self):
         """Test loading from invalid JSON file."""
         invalid_json = "{ invalid json }"
-        
+
         manager = ConfigManager()
-        
+
         with patch("builtins.open", mock_open(read_data=invalid_json)):
-            with patch.object(manager, '_find_config_file', return_value=Path("test.json")):
+            with patch.object(
+                manager, "_find_config_file", return_value=Path("test.json")
+            ):
                 result = manager._load_from_file()
-        
+
         assert result == {}  # Should return empty dict on error
 
     def test_load_from_file_not_found(self):
         """Test loading when config file is not found."""
         manager = ConfigManager()
-        
-        with patch.object(manager, '_find_config_file', return_value=None):
+
+        with patch.object(manager, "_find_config_file", return_value=None):
             result = manager._load_from_file()
-        
+
         assert result == {}
 
     def test_find_config_file_explicit(self):
         """Test finding explicitly specified config file."""
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
             tmp_path = Path(tmp.name)
-        
+
         try:
             manager = ConfigManager(tmp_path)
             found_file = manager._find_config_file()
@@ -248,25 +253,25 @@ class TestConfigManager:
         """Test finding explicitly specified config file that doesn't exist."""
         non_existent = Path("non-existent-config.json")
         manager = ConfigManager(non_existent)
-        
+
         found_file = manager._find_config_file()
         assert found_file is None
 
     def test_save_config(self):
         """Test saving configuration to file."""
         config = ServerConfig(host="test-host", port=3000)
-        
-        with tempfile.NamedTemporaryFile(mode='w', suffix=".json", delete=False) as tmp:
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
             tmp_path = Path(tmp.name)
-        
+
         try:
             manager = ConfigManager()
             manager.save_config(config, tmp_path)
-            
+
             # Verify file was written correctly
-            with open(tmp_path, 'r') as f:
+            with open(tmp_path, "r") as f:
                 saved_data = json.load(f)
-            
+
             assert saved_data["host"] == "test-host"
             assert saved_data["port"] == 3000
         finally:
@@ -276,13 +281,13 @@ class TestConfigManager:
         """Test that get_config loads config if not already loaded."""
         manager = ConfigManager()
         assert manager._config is None
-        
-        with patch.object(manager, 'load_config') as mock_load:
+
+        with patch.object(manager, "load_config") as mock_load:
             mock_config = ServerConfig()
             mock_load.return_value = mock_config
-            
+
             result = manager.get_config()
-            
+
             mock_load.assert_called_once()
             assert result == mock_config
 
@@ -291,10 +296,10 @@ class TestConfigManager:
         manager = ConfigManager()
         cached_config = ServerConfig(host="cached-host")
         manager._config = cached_config
-        
-        with patch.object(manager, 'load_config') as mock_load:
+
+        with patch.object(manager, "load_config") as mock_load:
             result = manager.get_config()
-            
+
             mock_load.assert_not_called()
             assert result == cached_config
 
@@ -303,13 +308,13 @@ class TestConfigManager:
         manager = ConfigManager()
         old_config = ServerConfig(host="old-host")
         manager._config = old_config
-        
-        with patch.object(manager, 'load_config') as mock_load:
+
+        with patch.object(manager, "load_config") as mock_load:
             new_config = ServerConfig(host="new-host")
             mock_load.return_value = new_config
-            
+
             result = manager.reload_config()
-            
+
             mock_load.assert_called_once()
             assert result == new_config
             assert manager._config == new_config
@@ -321,38 +326,38 @@ class TestConfigFunctions:
     def test_create_example_config(self):
         """Test creating example configuration."""
         example = create_example_config()
-        
+
         # Should be valid JSON
         data = json.loads(example)
-        
+
         # Should contain comments and config data
         assert "_comments" in data
         assert "host" in data
         assert "port" in data
-        
+
         # Comments should explain the fields
         assert "host" in data["_comments"]
         assert "Transport protocol" in data["_comments"]["transport"]
 
-    @patch('spec_server.config.config_manager')
+    @patch("spec_server.config.config_manager")
     def test_get_config(self, mock_manager):
         """Test global get_config function."""
         mock_config = ServerConfig()
         mock_manager.get_config.return_value = mock_config
-        
+
         result = get_config()
-        
+
         mock_manager.get_config.assert_called_once()
         assert result == mock_config
 
-    @patch('spec_server.config.config_manager')
+    @patch("spec_server.config.config_manager")
     def test_reload_config(self, mock_manager):
         """Test global reload_config function."""
         mock_config = ServerConfig()
         mock_manager.reload_config.return_value = mock_config
-        
+
         result = reload_config()
-        
+
         mock_manager.reload_config.assert_called_once()
         assert result == mock_config
 
@@ -367,30 +372,30 @@ class TestConfigIntegration:
             "host": "integration-host",
             "port": 4000,
             "transport": "sse",
-            "specs_dir": "integration-specs"
+            "specs_dir": "integration-specs",
         }
-        
-        with tempfile.NamedTemporaryFile(mode='w', suffix=".json", delete=False) as tmp:
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
             json.dump(config_data, tmp)
             tmp_path = Path(tmp.name)
-        
+
         try:
             # Set some environment variables
             env_vars = {
                 "SPEC_SERVER_PORT": "5000",  # Should override file
-                "SPEC_SERVER_LOG_LEVEL": "DEBUG"  # Should add to config
+                "SPEC_SERVER_LOG_LEVEL": "DEBUG",  # Should add to config
             }
-            
+
             with patch.dict(os.environ, env_vars):
                 manager = ConfigManager(tmp_path)
                 config = manager.load_config()
-            
+
             # Verify configuration
             assert config.host == "integration-host"  # From file
             assert config.port == 5000  # From env (overrides file)
             assert config.transport == "sse"  # From file
             assert config.specs_dir == "integration-specs"  # From file
             assert config.log_level == "DEBUG"  # From env
-            
+
         finally:
             tmp_path.unlink()

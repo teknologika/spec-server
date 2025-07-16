@@ -4,12 +4,11 @@ Unit tests for SpecManager class.
 
 import json
 import shutil
-from datetime import datetime
 from pathlib import Path
 
 import pytest
 
-from spec_server.models import Phase, Spec, SpecMetadata
+from spec_server.models import Phase, SpecMetadata
 from spec_server.spec_manager import SpecError, SpecManager
 
 
@@ -34,7 +33,7 @@ class TestSpecManager:
         if temp_specs_dir.exists():
             shutil.rmtree(temp_specs_dir)
 
-        manager = SpecManager(temp_specs_dir)
+        SpecManager(temp_specs_dir)
         assert temp_specs_dir.exists()
         assert temp_specs_dir.is_dir()
 
@@ -115,7 +114,7 @@ class TestSpecManager:
         manager = SpecManager(temp_specs_dir)
 
         # Create spec and add files
-        spec = manager.create_spec("test-feature", "Test")
+        manager.create_spec("test-feature", "Test")
         spec_dir = temp_specs_dir / "test-feature"
 
         # Create requirements file

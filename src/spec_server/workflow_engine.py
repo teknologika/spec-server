@@ -7,11 +7,10 @@ validates phase transitions, and ensures users cannot skip phases without proper
 """
 
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .models import Phase, Spec
-from .spec_manager import SpecError, SpecManager
+from .spec_manager import SpecManager
 
 
 class WorkflowError(Exception):
@@ -354,7 +353,7 @@ class WorkflowEngine:
             )
 
             # Add phase progression events based on file existence and approvals
-            current_phase = self.get_current_phase(spec)
+            # current_phase = self.get_current_phase(spec)  # Not used currently
             approvals = self._get_phase_approvals(spec.feature_name)
 
             for phase in [Phase.REQUIREMENTS, Phase.DESIGN, Phase.TASKS]:

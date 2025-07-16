@@ -2,8 +2,6 @@
 Basic tests to verify project structure and imports.
 """
 
-import pytest
-
 from spec_server import __author__, __version__
 from spec_server.main import main
 from spec_server.server import create_server

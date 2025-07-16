@@ -6,16 +6,16 @@ import random
 import string
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-from spec_server.models import Phase, Spec, SpecMetadata, Task, TaskStatus
+from spec_server.models import Phase, Spec, Task, TaskStatus
 from spec_server.spec_manager import SpecManager
 
 
 def random_string(length: int = 10) -> str:
     """Generate a random string of fixed length."""
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for _ in range(length))
+    return "".join(random.choice(letters) for _ in range(length))
 
 
 def random_feature_name() -> str:
@@ -32,26 +32,30 @@ def create_temp_spec_dir() -> Tuple[Path, Path]:
     return temp_dir, specs_dir
 
 
-def create_test_spec(spec_manager: SpecManager, feature_name: Optional[str] = None) -> Spec:
+def create_test_spec(
+    spec_manager: SpecManager, feature_name: Optional[str] = None
+) -> Spec:
     """Create a test specification."""
     if feature_name is None:
         feature_name = random_feature_name()
-    
+
     initial_idea = f"Test specification for {feature_name}"
-    
+
     # Create the spec
     spec = spec_manager.create_spec(feature_name, initial_idea)
     return spec
 
 
-def create_full_test_spec(spec_manager: SpecManager, feature_name: Optional[str] = None) -> Spec:
+def create_full_test_spec(
+    spec_manager: SpecManager, feature_name: Optional[str] = None
+) -> Spec:
     """Create a complete test specification with all documents."""
     if feature_name is None:
         feature_name = random_feature_name()
-    
+
     # Create the spec
-    spec = create_test_spec(spec_manager, feature_name)
-    
+    create_test_spec(spec_manager, feature_name)
+
     # Add requirements
     requirements = f"""# Requirements for {feature_name}
 
@@ -74,10 +78,10 @@ This is a test specification for {feature_name}.
 1. WHEN tests are run THEN they SHALL pass
 2. WHEN code is reviewed THEN it SHALL meet standards
 """
-    
+
     spec_manager.update_spec_document(feature_name, "requirements", requirements)
     spec_manager.approve_phase(feature_name, Phase.REQUIREMENTS)
-    
+
     # Add design
     design = f"""# Design for {feature_name}
 
@@ -115,10 +119,10 @@ All errors will be handled consistently with proper HTTP status codes.
 - Integration tests for API endpoints
 - End-to-end tests for user workflows
 """
-    
+
     spec_manager.update_spec_document(feature_name, "design", design)
     spec_manager.approve_phase(feature_name, Phase.DESIGN)
-    
+
     # Add tasks
     tasks = f"""# Tasks for {feature_name}
 
@@ -147,9 +151,9 @@ All errors will be handled consistently with proper HTTP status codes.
   - [ ] 5.2 Integration tests
   - [ ] 5.3 End-to-end tests
 """
-    
+
     spec_manager.update_spec_document(feature_name, "tasks", tasks)
-    
+
     return spec_manager.get_spec(feature_name)
 
 
@@ -158,8 +162,13 @@ def assert_spec_structure(spec: Spec, feature_name: str):
     assert spec.metadata.feature_name == feature_name
     assert spec.metadata.created_at is not None
     assert spec.metadata.updated_at is not None
-    assert spec.metadata.phase in [Phase.REQUIREMENTS, Phase.DESIGN, Phase.TASKS, Phase.IMPLEMENTATION]
-    
+    assert spec.metadata.phase in [
+        Phase.REQUIREMENTS,
+        Phase.DESIGN,
+        Phase.TASKS,
+        Phase.IMPLEMENTATION,
+    ]
+
     # Check that documents exist
     assert spec.requirements is not None
     assert len(spec.requirements.strip()) > 0
@@ -171,13 +180,17 @@ def assert_task_structure(task: Task):
     assert len(task.identifier.strip()) > 0
     assert task.title is not None
     assert len(task.title.strip()) > 0
-    assert task.status in [TaskStatus.NOT_STARTED, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]
+    assert task.status in [
+        TaskStatus.NOT_STARTED,
+        TaskStatus.IN_PROGRESS,
+        TaskStatus.COMPLETED,
+    ]
 
 
 def create_sample_file_references(temp_dir: Path) -> Dict[str, Path]:
     """Create sample files for testing file references."""
     files = {}
-    
+
     # Create markdown file
     md_file = temp_dir / "sample.md"
     md_content = """# Sample Markdown
@@ -197,7 +210,7 @@ def hello():
 """
     md_file.write_text(md_content)
     files["markdown"] = md_file
-    
+
     # Create JSON file
     json_file = temp_dir / "sample.json"
     json_content = {
@@ -206,12 +219,12 @@ def hello():
         "items": [
             {"id": 1, "name": "Item 1"},
             {"id": 2, "name": "Item 2"},
-            {"id": 3, "name": "Item 3"}
-        ]
+            {"id": 3, "name": "Item 3"},
+        ],
     }
     json_file.write_text(json.dumps(json_content, indent=2))
     files["json"] = json_file
-    
+
     # Create text file
     txt_file = temp_dir / "sample.txt"
     txt_content = """This is a plain text file.
@@ -220,31 +233,32 @@ Line 3
 Final line"""
     txt_file.write_text(txt_content)
     files["text"] = txt_file
-    
+
     return files
 
 
 def mock_environment_variables(env_vars: Dict[str, str]):
     """Context manager to temporarily set environment variables."""
+
     class EnvVarContext:
         def __init__(self, env_vars: Dict[str, str]):
             self.env_vars = env_vars
             self.old_values = {}
-        
+
         def __enter__(self):
             for key, value in self.env_vars.items():
                 if key in os.environ:
                     self.old_values[key] = os.environ[key]
                 os.environ[key] = value
             return self
-        
+
         def __exit__(self, exc_type, exc_val, exc_tb):
             for key in self.env_vars:
                 if key in self.old_values:
                     os.environ[key] = self.old_values[key]
                 else:
                     del os.environ[key]
-    
+
     return EnvVarContext(env_vars)
 
 
@@ -256,22 +270,26 @@ def create_test_config_file(temp_dir: Path, config_data: Dict[str, Any]) -> Path
     return config_file
 
 
-def assert_error_response(response: Dict[str, Any], expected_error_code: Optional[str] = None):
+def assert_error_response(
+    response: Dict[str, Any], expected_error_code: Optional[str] = None
+):
     """Assert that a response is a proper error response."""
     assert response["success"] is False
     assert "error_code" in response
     assert "message" in response
     assert "suggestions" in response
     assert isinstance(response["suggestions"], list)
-    
+
     if expected_error_code:
         assert response["error_code"] == expected_error_code
 
 
-def assert_success_response(response: Dict[str, Any], expected_keys: Optional[List[str]] = None):
+def assert_success_response(
+    response: Dict[str, Any], expected_keys: Optional[List[str]] = None
+):
     """Assert that a response is a successful response."""
     assert response["success"] is True
-    
+
     if expected_keys:
         for key in expected_keys:
             assert key in response
@@ -281,11 +299,11 @@ def compare_specs(spec1: Spec, spec2: Spec, ignore_timestamps: bool = True):
     """Compare two specs for equality."""
     assert spec1.metadata.feature_name == spec2.metadata.feature_name
     assert spec1.metadata.phase == spec2.metadata.phase
-    
+
     if not ignore_timestamps:
         assert spec1.metadata.created_at == spec2.metadata.created_at
         assert spec1.metadata.updated_at == spec2.metadata.updated_at
-    
+
     assert spec1.requirements == spec2.requirements
     assert spec1.design == spec2.design
     assert spec1.tasks == spec2.tasks
@@ -304,23 +322,22 @@ def count_tasks_by_status(tasks: List[Task], status: TaskStatus) -> int:
     return sum(1 for task in tasks if task.status == status)
 
 
-def create_test_json_rpc_request(method: str, params: Dict[str, Any], request_id: int = 1) -> Dict[str, Any]:
+def create_test_json_rpc_request(
+    method: str, params: Dict[str, Any], request_id: int = 1
+) -> Dict[str, Any]:
     """Create a test JSON-RPC request."""
-    return {
-        "jsonrpc": "2.0",
-        "id": request_id,
-        "method": method,
-        "params": params
-    }
+    return {"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}
 
 
-def assert_json_rpc_response(response: Dict[str, Any], request_id: int = 1, expect_error: bool = False):
+def assert_json_rpc_response(
+    response: Dict[str, Any], request_id: int = 1, expect_error: bool = False
+):
     """Assert that a response is a valid JSON-RPC response."""
     assert "jsonrpc" in response
     assert response["jsonrpc"] == "2.0"
     assert "id" in response
     assert response["id"] == request_id
-    
+
     if expect_error:
         assert "error" in response
         assert "code" in response["error"]
@@ -332,5 +349,6 @@ def assert_json_rpc_response(response: Dict[str, Any], request_id: int = 1, expe
 def cleanup_temp_directory(temp_dir: Path):
     """Clean up a temporary directory."""
     import shutil
+
     if temp_dir.exists():
         shutil.rmtree(temp_dir)

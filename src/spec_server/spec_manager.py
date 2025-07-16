@@ -11,7 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .errors import SpecError, ErrorCode
+from .config import get_effective_specs_dir
+from .errors import ErrorCode, SpecError
 from .models import Phase, Spec, SpecMetadata
 
 
@@ -24,15 +25,18 @@ class SpecManager:
     current states.
     """
 
-    def __init__(self, base_path: Path = Path("specs")):
+    def __init__(self, base_path: Optional[Path] = None):
         """
         Initialize the SpecManager.
 
         Args:
-            base_path: Base directory for storing specs (default: "specs")
+            base_path: Base directory for storing specs (None for auto-detection)
         """
-        self.base_path = base_path
-        self.metadata_file = base_path / ".spec-metadata.json"
+        if base_path is None:
+            self.base_path = get_effective_specs_dir()
+        else:
+            self.base_path = base_path
+        self.metadata_file = self.base_path / ".spec-metadata.json"
         self._ensure_base_directory()
 
     def _ensure_base_directory(self) -> None:
@@ -48,7 +52,7 @@ class SpecManager:
             with open(self.metadata_file, "r", encoding="utf-8") as f:
                 registry = json.load(f)
                 return registry if isinstance(registry, dict) else {}
-        except (json.JSONDecodeError, IOError) as e:
+        except (json.JSONDecodeError, IOError):
             # If metadata file is corrupted, start fresh but log the issue
             return {}
 
