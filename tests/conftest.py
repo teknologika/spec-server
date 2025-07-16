@@ -12,8 +12,20 @@ from tests.fixtures import MockFileSystem, SpecTestFixtures, TestDataGenerator
 
 
 @pytest.fixture
-def temp_spec_dir():
+def temp_specs_dir():
     """Provide a temporary directory for spec testing."""
+    temp_dir = Path(tempfile.mkdtemp())
+    yield temp_dir
+
+    # Cleanup
+    import shutil
+
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    
+# Keep the old fixture name for backward compatibility
+@pytest.fixture
+def temp_spec_dir():
+    """Provide a temporary directory for spec testing (alias for temp_specs_dir)."""
     temp_dir = Path(tempfile.mkdtemp())
     yield temp_dir
 
@@ -24,15 +36,15 @@ def temp_spec_dir():
 
 
 @pytest.fixture
-def mcp_tools(temp_spec_dir):
+def mcp_tools(temp_specs_dir):
     """Provide MCPTools instance with temporary directory."""
-    return MCPTools(base_path=temp_spec_dir)
+    return MCPTools(base_path=temp_specs_dir)
 
 
 @pytest.fixture
-def spec_fixtures(temp_spec_dir):
+def spec_fixtures(temp_specs_dir):
     """Provide SpecTestFixtures instance."""
-    fixtures = SpecTestFixtures(base_path=temp_spec_dir)
+    fixtures = SpecTestFixtures(base_path=temp_specs_dir)
     yield fixtures
     fixtures.cleanup()
 
