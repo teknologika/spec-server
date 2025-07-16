@@ -1,0 +1,9 @@
+{
+  "workspace-test": {
+    "created_at": "2025-07-16T18:51:13.797263",
+    "updated_at": "2025-07-16T18:51:13.798362",
+    "current_phase": "requirements",
+    "initial_idea": "Testing workspace integration",
+    "has_requirements": true
+  }
+}
