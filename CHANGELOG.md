@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- TBD
+
+### Changed
+- TBD
+
+### Deprecated
+- None
+
+### Removed
+- None
+
+### Fixed
+- None
+
+### Security
+- None
+
+## [0.2.0] - 2025-07-16
+
+### Added
 - Initial implementation of spec-server MCP server
 - Complete workflow engine for Requirements → Design → Tasks
 - Comprehensive test suite with fixtures and utilities
@@ -21,16 +41,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation and deployment guides
 
 ### Changed
-- N/A (initial release)
+- Code quality improvements
 
 ### Deprecated
-- N/A (initial release)
+- None
 
 ### Removed
-- N/A (initial release)
+- None
 
 ### Fixed
-- N/A (initial release)
+- Fixed flake8 errors by removing unused imports and variables
+- Improved code quality and maintainability
 
 ### Security
 - Input validation to prevent injection attacks
