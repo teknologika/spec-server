@@ -69,7 +69,7 @@ class TaskExecutor:
     REQUIREMENTS_REF_PATTERN = re.compile(r"_Requirements:\s*([^_]+)_")
     SUB_BULLET_PATTERN = re.compile(r"^(\s+)-\s+(.+)$", re.MULTILINE)
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the TaskExecutor."""
         pass
 

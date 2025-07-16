@@ -65,7 +65,7 @@ class ServerConfig(BaseModel):
 
     @field_validator("transport")
     @classmethod
-    def validate_transport(cls, v):
+    def validate_transport(cls, v: str) -> str:
         """Validate transport protocol."""
         if v not in ["stdio", "sse"]:
             raise ValueError("Transport must be 'stdio' or 'sse'")
@@ -73,7 +73,7 @@ class ServerConfig(BaseModel):
 
     @field_validator("port")
     @classmethod
-    def validate_port(cls, v):
+    def validate_port(cls, v: int) -> int:
         """Validate port number."""
         if not (1 <= v <= 65535):
             raise ValueError("Port must be between 1 and 65535")
@@ -81,7 +81,7 @@ class ServerConfig(BaseModel):
 
     @field_validator("log_level")
     @classmethod
-    def validate_log_level(cls, v):
+    def validate_log_level(cls, v: str) -> str:
         """Validate log level."""
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if v.upper() not in valid_levels:
@@ -90,7 +90,7 @@ class ServerConfig(BaseModel):
 
     @field_validator("specs_dir", "backup_dir")
     @classmethod
-    def validate_directories(cls, v):
+    def validate_directories(cls, v: str) -> str:
         """Validate directory paths."""
         if not v or not isinstance(v, str):
             raise ValueError("Directory path must be a non-empty string")
@@ -98,7 +98,7 @@ class ServerConfig(BaseModel):
 
     @field_validator("max_specs", "max_document_size", "cache_size")
     @classmethod
-    def validate_positive_integers(cls, v):
+    def validate_positive_integers(cls, v: int) -> int:
         """Validate positive integer values."""
         if v <= 0:
             raise ValueError("Value must be positive")

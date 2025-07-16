@@ -18,7 +18,7 @@ from .mcp_tools import MCPTools
 logger = logging.getLogger(__name__)
 
 # Initialize the FastMCP server with proper configuration
-mcp = FastMCP(name="spec-server", version="0.1.0")
+mcp: FastMCP = FastMCP(name="spec-server", version="0.1.0")
 
 # Initialize MCP tools
 mcp_tools = MCPTools()
@@ -163,7 +163,7 @@ def create_server() -> FastMCP:
     return mcp
 
 
-def run_server():
+def run_server() -> None:
     """Run the MCP server with appropriate transport."""
     try:
         if len(sys.argv) == 1 or sys.argv[1] == "stdio":
