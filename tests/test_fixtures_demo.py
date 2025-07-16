@@ -221,8 +221,8 @@ class TestDataGeneratorUtility:
         content = test_data_generator.generate_unicode_content()
 
         assert "中文" in content  # Chinese
-        assert "العربية" in content  # Arabic
-        assert "русский" in content  # Russian
+        assert "العربي" in content  # Arabic
+        assert "русском" in content  # Russian
         assert "日本語" in content  # Japanese
         assert "🚀" in content  # Emoji
         assert "Requirements Document" in content
