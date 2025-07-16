@@ -184,7 +184,7 @@ def run_server() -> None:
             )
 
             # Run SSE server with configuration
-            mcp.run_sse(port=port, host=host)
+            mcp.run_sse(port=port, host=host)  # type: ignore
         else:
             logger.error(f"Unknown transport: {sys.argv[1]}")
             logger.error("Usage: python -m spec_server [stdio|sse] [port] [host]")
