@@ -573,10 +573,10 @@ See API specification: #[[file:api-spec.md]]
         with pytest.raises(SpecError):
             mcp_tools.update_spec_document("non-existent", "requirements", "content")
 
-        with pytest.raises(MCPToolsError):
+        with pytest.raises(SpecError):
             mcp_tools.execute_task("non-existent")
 
-        with pytest.raises(MCPToolsError):
+        with pytest.raises(SpecError):
             mcp_tools.complete_task("non-existent", "1")
 
         with pytest.raises(MCPToolsError):
