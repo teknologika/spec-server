@@ -4,13 +4,30 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spec-server"
-version = "v0.1.0"
+version = "0.1.0"
 description = "MCP server for structured feature development through Requirements → Design → Tasks workflow"
 readme = "README.md"
-license = "MIT"
-classifiers = [ "Development Status :: 3 - Alpha", "Intended Audience :: Developers", "License :: OSI Approved :: MIT License", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3.12", "Topic :: Software Development", "Topic :: Software Development :: Libraries :: Python Modules",]
+license = {text = "MIT"}
+keywords = ["mcp", "specification", "feature-development", "requirements", "design", "tasks", "workflow"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+]
 requires-python = ">=3.12"
-dependencies = [ "fastmcp>=0.2.0", "pydantic>=2.0.0", "pathlib-mate>=1.0.0",]
+dependencies = [
+    "fastmcp>=0.2.0",
+    "pydantic>=2.0.0",
+    "pathlib-mate>=1.0.0",
+]
 [[project.authors]]
 name = "Teknologika"
 email = "hello@teknologika.com"

@@ -1,93 +1,64 @@
 #!/bin/bash
-# Release script for spec-server
+# Release script for spec-server package
 
 set -e
 
+# Check if version argument is provided
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <version>"
-    echo "Example: $0 0.1.0"
+    echo "Example: $0 0.1.1"
     exit 1
 fi
 
 VERSION=$1
 
-echo "🚀 Preparing release v$VERSION"
+echo "🚀 Preparing release v$VERSION..."
+
+# Validate version format
+if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "❌ Invalid version format. Use semantic versioning (e.g., 1.0.0)"
+    exit 1
+fi
 
 # Check if we're on main branch
-BRANCH=$(git branch --show-current)
-if [ "$BRANCH" != "main" ]; then
-    echo "❌ Must be on main branch to release. Current branch: $BRANCH"
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    echo "❌ Must be on main branch to create a release. Current branch: $CURRENT_BRANCH"
     exit 1
 fi
 
 # Check if working directory is clean
-if [ -n "$(git status --porcelain)" ]; then
+if ! git diff-index --quiet HEAD --; then
     echo "❌ Working directory is not clean. Please commit or stash changes."
-    git status --short
     exit 1
 fi
 
 # Update version in pyproject.toml
 echo "📝 Updating version in pyproject.toml..."
-if command -v python3 &> /dev/null; then
-    python3 -c "
-import toml
-with open('pyproject.toml', 'r') as f:
-    data = toml.load(f)
-data['project']['version'] = '$VERSION'
-with open('pyproject.toml', 'w') as f:
-    toml.dump(data, f)
-print('✅ Updated pyproject.toml')
-"
-else
-    echo "❌ Python3 not found. Please install Python3 or update version manually."
-    exit 1
-fi
+sed -i.bak "s/version = \"[^\"]*\"/version = \"$VERSION\"/" pyproject.toml
+rm pyproject.toml.bak
 
-# Update version in __init__.py
-echo "📝 Updating version in __init__.py..."
-sed -i.bak "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" src/spec_server/__init__.py
-rm src/spec_server/__init__.py.bak
-
-# Run tests
+# Run tests to ensure everything works
 echo "🧪 Running tests..."
-python3 -m pytest --cov=spec_server
+python -m pytest
 
-# Run type checking
-echo "🔍 Running type checks..."
-mypy src
+# Build the package
+echo "🏗️ Building package..."
+./scripts/build.sh
 
-# Run linting
-echo "🧹 Running linting..."
-black --check src tests
-isort --check-only src tests
+# Commit version update
+echo "💾 Committing version update..."
+git add pyproject.toml
+git commit -m "Bump version to $VERSION"
 
-# Build package
-echo "📦 Building package..."
-python3 -m build
+# Create and push tag
+echo "🏷️ Creating and pushing tag..."
+git tag -a "v$VERSION" -m "Release version $VERSION"
+git push origin main
+git push origin "v$VERSION"
 
-# Check package
-echo "✅ Checking package..."
-twine check dist/*
-
-echo ""
-echo "🎉 Release v$VERSION is ready!"
-echo ""
-echo "Next steps:"
-echo "1. Review the changes:"
-echo "   git diff"
-echo ""
-echo "2. Commit the version bump:"
-echo "   git add -A"
-echo "   git commit -m 'Bump version to v$VERSION'"
-echo "   git push origin main"
-echo ""
-echo "3. Create and push the tag:"
-echo "   git tag v$VERSION"
-echo "   git push origin v$VERSION"
-echo ""
-echo "4. Or use GitHub's manual publish workflow:"
-echo "   Go to Actions → Manual Publish to PyPI → Run workflow"
-echo "   Enter version: $VERSION"
-echo ""
-echo "The GitHub Action will handle PyPI publishing and release creation."
+echo "✅ Release v$VERSION prepared successfully!"
+echo "🎯 Next steps:"
+echo "   1. Go to GitHub and create a release from tag v$VERSION"
+echo "   2. The CI/CD pipeline will automatically publish to PyPI"
+echo "   3. Update the README.md to remove 'Coming Soon' from PyPI installation"

@@ -1,15 +1,201 @@
 """
 FastMCP server implementation for spec-server.
+
+This module sets up the FastMCP server and registers all the MCP tools.
+It supports both stdio and SSE transports with proper error handling and logging.
 """
 
+import logging
+import sys
+from pathlib import Path
+from typing import Any, Dict, Optional
+
 from fastmcp import FastMCP
+
+from .errors import format_error_response
+from .mcp_tools import MCPTools, MCPToolsError
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# Initialize the FastMCP server with proper configuration
+mcp = FastMCP(
+    name="spec-server",
+    version="0.1.0"
+)
+
+# Initialize MCP tools
+mcp_tools = MCPTools()
+
+
+@mcp.tool()
+def create_spec(feature_name: str, initial_idea: str) -> Dict[str, Any]:
+    """
+    Create a new feature specification.
+    
+    Args:
+        feature_name: Kebab-case feature identifier (e.g., "user-authentication")
+        initial_idea: User's rough feature description
+        
+    Returns:
+        Dictionary containing created spec metadata and initial requirements
+    """
+    try:
+        return mcp_tools.create_spec(feature_name, initial_idea)
+    except Exception as e:
+        return format_error_response(e)
+
+
+@mcp.tool()
+def update_spec_document(
+    feature_name: str,
+    document_type: str,
+    content: str,
+    phase_approval: bool = False
+) -> Dict[str, Any]:
+    """
+    Update a spec document and manage workflow transitions.
+    
+    Args:
+        feature_name: Target spec identifier
+        document_type: "requirements", "design", or "tasks"
+        content: Updated document content
+        phase_approval: Whether user approves current phase for advancement
+        
+    Returns:
+        Dictionary containing updated document and workflow status
+    """
+    try:
+        return mcp_tools.update_spec_document(feature_name, document_type, content, phase_approval)
+    except Exception as e:
+        return format_error_response(e)
+
+
+@mcp.tool()
+def list_specs() -> Dict[str, Any]:
+    """
+    List all existing specifications with metadata.
+    
+    Returns:
+        Dictionary containing list of spec metadata
+    """
+    try:
+        return mcp_tools.list_specs()
+    except Exception as e:
+        return format_error_response(e)
+
+
+@mcp.tool()
+def read_spec_document(
+    feature_name: str,
+    document_type: str,
+    resolve_references: bool = True
+) -> Dict[str, Any]:
+    """
+    Read a spec document with optional file reference resolution.
+    
+    Args:
+        feature_name: Target spec identifier
+        document_type: "requirements", "design", or "tasks"
+        resolve_references: Whether to resolve #[[file:path]] references
+        
+    Returns:
+        Dictionary containing document content and metadata
+    """
+    try:
+        return mcp_tools.read_spec_document(feature_name, document_type, resolve_references)
+    except Exception as e:
+        return format_error_response(e)
+
+
+@mcp.tool()
+def execute_task(
+    feature_name: str,
+    task_identifier: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Execute a specific implementation task or get the next task.
+    
+    Args:
+        feature_name: Target spec identifier
+        task_identifier: Task number/identifier (optional - if not provided, returns next task)
+        
+    Returns:
+        Dictionary containing task execution context and results
+    """
+    try:
+        return mcp_tools.execute_task(feature_name, task_identifier)
+    except Exception as e:
+        return format_error_response(e)
+
+
+@mcp.tool()
+def complete_task(feature_name: str, task_identifier: str) -> Dict[str, Any]:
+    """
+    Mark a task as completed.
+    
+    Args:
+        feature_name: Target spec identifier
+        task_identifier: Task number/identifier
+        
+    Returns:
+        Dictionary containing updated task status and progress
+    """
+    try:
+        return mcp_tools.complete_task(feature_name, task_identifier)
+    except Exception as e:
+        return format_error_response(e)
+
+
+@mcp.tool()
+def delete_spec(feature_name: str) -> Dict[str, Any]:
+    """
+    Delete a specification entirely.
+    
+    Args:
+        feature_name: Target spec identifier
+        
+    Returns:
+        Dictionary containing deletion confirmation
+    """
+    try:
+        return mcp_tools.delete_spec(feature_name)
+    except Exception as e:
+        return format_error_response(e)
 
 
 def create_server() -> FastMCP:
     """Create and configure the FastMCP server instance."""
-    server: FastMCP = FastMCP("spec-server")
+    return mcp
 
-    # TODO: Register MCP tools here
-    # This will be implemented in later tasks
 
-    return server
+def run_server():
+    """Run the MCP server with appropriate transport."""
+    try:
+        if len(sys.argv) == 1 or sys.argv[1] == "stdio":
+            # Run with stdio transport (default MCP transport)
+            logger.info("Starting spec-server with stdio transport")
+            logger.debug("Server configuration: stdio transport, 7 tools registered")
+            mcp.run()
+        elif sys.argv[1] == "sse":
+            # Run with SSE transport on specified port
+            port = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
+            host = sys.argv[3] if len(sys.argv) > 3 else "127.0.0.1"
+            logger.info(f"Starting spec-server with SSE transport on {host}:{port}")
+            logger.debug(f"Server configuration: SSE transport, {host}:{port}, 7 tools registered")
+            logger.info("SSE transport includes CORS support for web client compatibility")
+            
+            # Run SSE server with configuration
+            mcp.run_sse(port=port, host=host)
+        else:
+            logger.error(f"Unknown transport: {sys.argv[1]}")
+            print(f"Unknown transport: {sys.argv[1]}")
+            print("Usage: python -m spec_server [stdio|sse] [port] [host]")
+            sys.exit(1)
+    except KeyboardInterrupt:
+        logger.info("Server stopped by user (Ctrl+C)")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Failed to start server: {e}", exc_info=True)
+        print(f"Error starting server: {e}")
+        sys.exit(1)
