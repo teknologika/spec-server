@@ -25,6 +25,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.3.0] - 2025-07-17
+
+### Added
+- New test suite for phase approval functionality
+
+### Changed
+- Updated workflow engine to require explicit approval for phase advancement
+
+### Deprecated
+- None
+
+### Removed
+- None
+
+### Fixed
+- Fixed issue where specs could be auto-approved without explicit user confirmation
+- Enhanced phase approval logic to ensure explicit approval is required
+
+### Security
+- Improved workflow security by requiring explicit approval for phase transitions
+
 ## [0.2.0] - 2025-07-16
 
 ### Added

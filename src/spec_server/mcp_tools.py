@@ -148,7 +148,7 @@ class MCPTools:
         feature_name: str,
         document_type: str,
         content: str,
-        phase_approval: bool = False,
+        phase_approval: bool = False,  # Must be explicitly set to True to approve and advance phases
     ) -> Dict[str, Any]:
         """
         Update a spec document and manage workflow transitions.
@@ -204,11 +204,14 @@ class MCPTools:
             next_phase = current_phase
             workflow_message = f"Updated {document_type} document"
 
+            # Only advance phase if explicit approval is provided by the user
+            # This ensures specs are never auto-approved without user confirmation
             if phase_approval and self.workflow_engine.can_advance_phase(
                 spec, phase_approval
             ):
                 try:
-                    next_phase = self.workflow_engine.advance_phase(spec)
+                    # Pass explicit approval to advance_phase
+                    next_phase = self.workflow_engine.advance_phase(spec, approval=True)
                     workflow_message += f" and advanced to {next_phase.value} phase"
 
                     # Generate next phase document if needed
@@ -268,6 +271,7 @@ class MCPTools:
                     if not phase_approval
                     else False
                 ),
+                "requires_approval": self.workflow_engine.require_approval(spec),
             }
 
         except SpecError as e:

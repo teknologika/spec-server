@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spec-server"
-version = "v0.2.0"
+version = "v0.3.0"
 description = "MCP server for structured feature development through Requirements → Design → Tasks workflow"
 readme = "README.md"
 keywords = [ "mcp", "specification", "feature-development", "requirements", "design", "tasks", "workflow",]

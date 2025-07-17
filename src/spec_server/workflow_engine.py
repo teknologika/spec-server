@@ -72,7 +72,8 @@ class WorkflowEngine:
             design_exists = spec.get_design_path().exists()
             tasks_exists = spec.get_tasks_path().exists()
 
-            # Determine phase based on file existence and approval status
+            # Determine phase based on file existence and explicit approval status
+            # Phase advancement requires explicit approval
             if tasks_exists and self._is_phase_approved(spec.feature_name, "tasks"):
                 return Phase.COMPLETE
             elif tasks_exists:
@@ -103,7 +104,8 @@ class WorkflowEngine:
 
         Args:
             spec: Spec instance
-            approval: Whether user has provided explicit approval
+            approval: Whether user has provided explicit approval for this operation.
+                     Must be True for phase advancement unless already approved.
 
         Returns:
             True if spec can advance to next phase
@@ -118,7 +120,8 @@ class WorkflowEngine:
             if current_phase == Phase.COMPLETE:
                 return False
 
-            # Check if current phase is approved
+            # Explicit approval is required for phase advancement
+            # Either the phase must already be approved or explicit approval must be provided now
             if not approval and not self._is_phase_approved(
                 spec.feature_name, current_phase.value
             ):
@@ -143,7 +146,8 @@ class WorkflowEngine:
 
         Args:
             spec: Spec instance
-            approval: Whether user has provided explicit approval
+            approval: Whether user has provided explicit approval for this operation
+                     This parameter should be True for explicit user approval
 
         Returns:
             New phase after advancement
@@ -154,7 +158,7 @@ class WorkflowEngine:
         if not self.can_advance_phase(spec, approval):
             current_phase = self.get_current_phase(spec)
             raise WorkflowError(
-                f"Cannot advance spec '{spec.feature_name}' from phase '{current_phase.value}' without approval",
+                f"Cannot advance spec '{spec.feature_name}' from phase '{current_phase.value}' without explicit approval",
                 error_code="PHASE_ADVANCEMENT_DENIED",
                 details={
                     "feature_name": spec.feature_name,
@@ -251,13 +255,15 @@ class WorkflowEngine:
     def require_approval(self, spec: Spec, phase: Optional[Phase] = None) -> bool:
         """
         Check if a phase requires user approval before advancement.
+        
+        All phases require explicit approval before advancement.
 
         Args:
             spec: Spec instance
             phase: Phase to check (defaults to current phase)
 
         Returns:
-            True if approval is required
+            True if approval is required (which is always the case unless already approved)
 
         Raises:
             WorkflowError: If validation fails
@@ -266,7 +272,8 @@ class WorkflowEngine:
             if phase is None:
                 phase = self.get_current_phase(spec)
 
-            # All phases require approval before advancement
+            # All phases require explicit approval before advancement
+            # Only return False if the phase has already been approved
             return not self._is_phase_approved(spec.feature_name, phase.value)
 
         except Exception as e:
@@ -377,7 +384,12 @@ class WorkflowEngine:
             )
 
     def _is_phase_approved(self, feature_name: str, phase: str) -> bool:
-        """Check if a phase has been approved."""
+        """
+        Check if a phase has been approved.
+        
+        A phase is considered approved only if it has been explicitly approved
+        by recording it in the approval_tracking dictionary.
+        """
         return (
             feature_name in self.approval_tracking
             and phase in self.approval_tracking[feature_name]
