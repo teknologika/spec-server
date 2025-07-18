@@ -255,7 +255,7 @@ class WorkflowEngine:
     def require_approval(self, spec: Spec, phase: Optional[Phase] = None) -> bool:
         """
         Check if a phase requires user approval before advancement.
-        
+
         All phases require explicit approval before advancement.
 
         Args:
@@ -386,7 +386,7 @@ class WorkflowEngine:
     def _is_phase_approved(self, feature_name: str, phase: str) -> bool:
         """
         Check if a phase has been approved.
-        
+
         A phase is considered approved only if it has been explicitly approved
         by recording it in the approval_tracking dictionary.
         """

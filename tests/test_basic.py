@@ -11,6 +11,7 @@ def test_version():
     """Test that version is defined."""
     assert __version__ == "v0.3.0"
 
+
 def test_author():
     """Test that author is defined."""
     assert __author__ == "Teknologika"
