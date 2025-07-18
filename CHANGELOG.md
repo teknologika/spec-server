@@ -25,6 +25,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.4.1] - 2025-07-18
+
+### Added
+- Version consistency check script and pre-commit hook
+- Automatic validation of version consistency across project files
+
+### Changed
+- Updated file formatting and whitespace
+
+### Fixed
+- Fixed version consistency across project files
+
+### Security
+- None
+
 ## [0.4.0] - 2025-07-18
 
 ### Added

@@ -25,6 +25,7 @@ test_version_pattern = r'assert __version__ == "(v\d+\.\d+\.\d+)"'
 init_version_pattern = r'__version__ = "(v\d+\.\d+\.\d+)"'
 server_version_pattern = r'version="(v?\d+\.\d+\.\d+)"'
 
+
 def extract_version(file_path, pattern):
     """Extract version from a file using a regex pattern."""
     try:
@@ -37,6 +38,7 @@ def extract_version(file_path, pattern):
         print(f"Error reading {file_path}: {e}")
         return None
 
+
 def main():
     """Main function to check version consistency."""
     # Extract versions
@@ -44,30 +46,34 @@ def main():
     test_version = extract_version(test_basic_path, test_version_pattern)
     init_version = extract_version(init_path, init_version_pattern)
     server_version = extract_version(server_path, server_version_pattern)
-    
+
     # Normalize server version (add 'v' prefix if missing)
-    if server_version and not server_version.startswith('v'):
+    if server_version and not server_version.startswith("v"):
         server_version = f"v{server_version}"
-    
+
     # Print versions for debugging
     print(f"pyproject.toml version: {pyproject_version}")
     print(f"test_basic.py version: {test_version}")
     print(f"__init__.py version: {init_version}")
     print(f"server.py version: {server_version}")
-    
+
     # Check for consistency
-    versions = [v for v in [pyproject_version, test_version, init_version, server_version] if v]
+    versions = [
+        v for v in [pyproject_version, test_version, init_version, server_version] if v
+    ]
     if not versions:
         print("Error: Could not extract version information from any file")
         return 1
-    
+
     reference_version = versions[0]
     consistent = all(v == reference_version for v in versions)
-    
+
     if not consistent:
         print("\nERROR: Version mismatch detected!")
         if pyproject_version != reference_version:
-            print(f"  - pyproject.toml: {pyproject_version} (expected: {reference_version})")
+            print(
+                f"  - pyproject.toml: {pyproject_version} (expected: {reference_version})"
+            )
         if test_version != reference_version:
             print(f"  - test_basic.py: {test_version} (expected: {reference_version})")
         if init_version != reference_version:
@@ -76,9 +82,10 @@ def main():
             print(f"  - server.py: {server_version} (expected: {reference_version})")
         print("\nPlease update all version references to be consistent.")
         return 1
-    
+
     print("\nSuccess: All version references are consistent!")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

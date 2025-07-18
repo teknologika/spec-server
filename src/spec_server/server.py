@@ -12,14 +12,14 @@ from typing import Any, Dict, Optional
 from fastmcp import FastMCP
 
 from .errors import format_error_response
-from .llm_guidance import get_llm_guidance_content, get_phase_guidance_content, get_introduction_prompt
+from .llm_guidance import get_llm_guidance_content, get_phase_guidance_content
 from .mcp_tools import MCPTools
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 # Initialize the FastMCP server with proper configuration
-mcp: FastMCP = FastMCP(name="spec-server", version="0.4.0")
+mcp: FastMCP = FastMCP(name="spec-server", version="0.4.1")
 
 # Initialize MCP tools
 mcp_tools = MCPTools()
@@ -32,10 +32,10 @@ mcp_tools = MCPTools()
 def get_full_guidance() -> Dict[str, Any]:
     """
     Get the complete LLM guidance document.
-    
+
     IMPORTANT: Use this tool to access the full guidance on how to effectively use spec-server
     through a conversational approach with users.
-    
+
     Returns:
         Dictionary containing the complete LLM guidance document
     """
@@ -44,7 +44,7 @@ def get_full_guidance() -> Dict[str, Any]:
         return {
             "success": True,
             "content": content,
-            "message": "Retrieved complete LLM guidance document"
+            "message": "Retrieved complete LLM guidance document",
         }
     except Exception as e:
         return format_error_response(e)
@@ -54,13 +54,13 @@ def get_full_guidance() -> Dict[str, Any]:
 def get_guidance(phase: str = "general") -> Dict[str, Any]:
     """
     Get guidance for a specific phase of the spec-server workflow.
-    
+
     IMPORTANT: Use this tool to get guidance on how to have effective conversations with users
     during different phases of the specification process.
-    
+
     Args:
         phase: The phase to get guidance for ("requirements", "design", "tasks", or "general")
-        
+
     Returns:
         Dictionary containing guidance for the specified phase including:
         - Questions to ask users
@@ -74,7 +74,7 @@ def get_guidance(phase: str = "general") -> Dict[str, Any]:
             "success": True,
             "phase": phase,
             "guidance": guidance,
-            "message": f"Retrieved guidance for {phase} phase"
+            "message": f"Retrieved guidance for {phase} phase",
         }
     except Exception as e:
         return format_error_response(e)
@@ -84,13 +84,13 @@ def get_guidance(phase: str = "general") -> Dict[str, Any]:
 def create_spec(feature_name: str, initial_idea: str) -> Dict[str, Any]:
     """
     Create a new feature specification.
-    
+
     IMPORTANT: Before calling this tool, have a thorough conversation with the user about:
     - Who will use this feature
     - What problem it solves
     - Key requirements and constraints
     - Success criteria
-    
+
     Use the get_guidance tool with phase="requirements" for conversation starters.
 
     Args:
@@ -112,13 +112,13 @@ def update_spec_document(
 ) -> Dict[str, Any]:
     """
     Update a spec document and manage workflow transitions.
-    
+
     IMPORTANT: Before calling this tool:
     - For requirements: Have a thorough discussion about user needs and acceptance criteria
     - For design: Discuss architecture approaches, trade-offs, and technical details
     - For tasks: Talk about implementation strategy and potential challenges
     - For phase_approval=True: Ensure the user has explicitly approved the document
-    
+
     Use the get_guidance tool with phase="requirements", "design", or "tasks" for conversation starters.
 
     Args:
@@ -158,12 +158,12 @@ def read_spec_document(
 ) -> Dict[str, Any]:
     """
     Read a spec document with optional file reference resolution.
-    
+
     IMPORTANT: After reading a document, review it with the user and discuss:
     - Whether it accurately captures their needs
     - If anything is missing or needs clarification
     - What questions they have about the content
-    
+
     This helps ensure shared understanding before proceeding.
 
     Args:
@@ -188,13 +188,13 @@ def execute_task(
 ) -> Dict[str, Any]:
     """
     Execute a specific implementation task or get the next task.
-    
+
     IMPORTANT: Before executing tasks, discuss with the user:
     - The implementation approach for this specific task
     - Any dependencies or prerequisites
     - How this task relates to the overall requirements
     - Testing strategy for this functionality
-    
+
     This ensures alignment on implementation details before coding begins.
 
     Args:
@@ -214,13 +214,13 @@ def execute_task(
 def complete_task(feature_name: str, task_identifier: str) -> Dict[str, Any]:
     """
     Mark a task as completed.
-    
+
     IMPORTANT: Before marking a task as complete, discuss with the user:
     - Whether the implementation meets all requirements
     - If testing has been performed
     - Whether there are any outstanding issues or edge cases
     - What was learned during implementation
-    
+
     This ensures quality and knowledge sharing before moving on.
 
     Args:
@@ -240,12 +240,12 @@ def complete_task(feature_name: str, task_identifier: str) -> Dict[str, Any]:
 def delete_spec(feature_name: str) -> Dict[str, Any]:
     """
     Delete a specification entirely.
-    
+
     IMPORTANT: Before deleting a specification, discuss with the user:
     - Why they want to delete it
     - Whether any valuable information should be preserved
     - If they're sure they want to permanently delete it
-    
+
     This prevents accidental loss of important work.
 
     Args:

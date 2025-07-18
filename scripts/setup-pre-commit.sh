@@ -49,10 +49,10 @@ if [[ -f ".pre-commit-config.yaml" ]]; then
     print_status "Installing pre-commit hooks from .pre-commit-config.yaml..."
     pre-commit install
     print_success "Pre-commit hooks installed from configuration"
-    
+
     # Install commit-msg hook as well
     pre-commit install --hook-type commit-msg
-    
+
     # Run pre-commit on all files to set up the environment
     print_status "Running pre-commit on all files to set up environment..."
     pre-commit run --all-files || true
@@ -67,10 +67,10 @@ PRE_COMMIT_HOOK="$GIT_HOOKS_DIR/pre-commit"
 
 if [[ -f "scripts/pre-commit-hook.sh" ]]; then
     print_status "Setting up manual Git pre-commit hook..."
-    
+
     # Create hooks directory if it doesn't exist
     mkdir -p "$GIT_HOOKS_DIR"
-    
+
     # Create or update the pre-commit hook
     cat > "$PRE_COMMIT_HOOK" << 'EOF'
 #!/bin/bash
@@ -83,7 +83,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 # Run the pre-commit script
 exec "$PROJECT_ROOT/scripts/pre-commit-hook.sh"
 EOF
-    
+
     chmod +x "$PRE_COMMIT_HOOK"
     print_success "Manual Git pre-commit hook installed"
 else

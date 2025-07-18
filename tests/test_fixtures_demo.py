@@ -9,11 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.fixtures import (
-    MockFileSystem,
-    SpecTestData,
-    SpecTestFixtures,
-)
+from tests.fixtures import MockFileSystem, SpecTestData, SpecTestFixtures
 
 
 class TestSpecTestData:

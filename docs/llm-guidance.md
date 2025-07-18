@@ -86,7 +86,7 @@ After requirements are approved, but before creating the design document:
    I see a few possible approaches to implementing this:
    1. [Approach A] which offers [benefits] but has [drawbacks]
    2. [Approach B] which offers [benefits] but has [drawbacks]
-   
+
    What are your thoughts on these approaches?
    ```
 
@@ -123,7 +123,7 @@ After design is approved, but before creating the tasks document:
    I see a few areas that might be challenging:
    - [Challenge 1] which we could address by...
    - [Challenge 2] which we could address by...
-   
+
    Are there other challenges you anticipate?
    ```
 

@@ -14,7 +14,7 @@ graph TB
     Server --> FileSystem[File System Storage]
     Server --> Validator[Document Validators]
     Server --> WorkflowEngine[Workflow State Engine]
-    
+
     subgraph "MCP Tools"
         CreateSpec[create_spec]
         UpdateSpec[update_spec_document]
@@ -23,7 +23,7 @@ graph TB
         ExecuteTask[execute_task]
         DeleteSpec[delete_spec]
     end
-    
+
     subgraph "Core Components"
         SpecManager[Spec Manager]
         DocumentGenerator[Document Generator]
@@ -51,7 +51,7 @@ The server exposes the following MCP tools:
 #### create_spec
 - **Purpose**: Initialize a new feature specification
 - **Explanation**: This tool creates a new spec directory structure and generates an initial requirements document based on the user's rough idea. It validates that the feature name doesn't already exist and follows kebab-case naming conventions. The tool uses the DocumentGenerator to create a properly formatted requirements.md file with user stories and EARS-format acceptance criteria.
-- **Parameters**: 
+- **Parameters**:
   - `feature_name` (string): Kebab-case feature identifier
   - `initial_idea` (string): User's rough feature description
 - **Returns**: Created spec metadata and initial requirements document
@@ -185,15 +185,15 @@ class Spec(BaseModel):
     created_at: str              # ISO timestamp of spec creation
     updated_at: str              # ISO timestamp of last modification
     base_path: Path              # File system path to spec directory
-    
+
     def get_requirements_path(self) -> Path:
         """Returns path to requirements.md file"""
         return self.base_path / "requirements.md"
-    
+
     def get_design_path(self) -> Path:
         """Returns path to design.md file"""
         return self.base_path / "design.md"
-    
+
     def get_tasks_path(self) -> Path:
         """Returns path to tasks.md file"""
         return self.base_path / "tasks.md"
@@ -360,7 +360,7 @@ def create_spec(feature_name: str, initial_idea: str) -> dict:
 if __name__ == "__main__":
     import sys
     import asyncio
-    
+
     # Check if running via stdio (default MCP transport)
     if len(sys.argv) == 1 or sys.argv[1] == "stdio":
         # Run with stdio transport

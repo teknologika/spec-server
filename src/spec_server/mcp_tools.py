@@ -175,7 +175,6 @@ class MCPTools:
         phase_approval = validated_params["phase_approval"]
 
         try:
-
             # Get the spec
             spec = self.spec_manager.get_spec(feature_name)
 
@@ -372,7 +371,6 @@ class MCPTools:
             raise ErrorFactory.document_not_found(feature_name, document_type)
 
         try:
-
             # Read the content
             content = file_path.read_text(encoding="utf-8")
 
@@ -484,7 +482,6 @@ class MCPTools:
                 )
 
         try:
-
             # Check if task can be executed
             if not self.task_executor.can_execute_task(task, tasks):
                 dependencies = self.task_executor.get_task_dependencies(task, tasks)
@@ -621,7 +618,6 @@ class MCPTools:
             )
 
         try:
-
             # Update task status to completed
             updated_tasks_content = self.task_executor.update_task_status(
                 tasks_content, task_identifier, TaskStatus.COMPLETED

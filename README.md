@@ -7,7 +7,7 @@ An MCP (Model Context Protocol) server that provides structured feature developm
 spec-server helps AI assistants and developers transform rough feature ideas into executable implementation plans through a structured approach:
 
 1. **Requirements Phase**: Define user stories and acceptance criteria in EARS format
-2. **Design Phase**: Create comprehensive technical design documents  
+2. **Design Phase**: Create comprehensive technical design documents
 3. **Tasks Phase**: Generate actionable implementation tasks with test-driven development focus
 
 ## Features

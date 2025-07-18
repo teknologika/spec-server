@@ -58,9 +58,9 @@ fi
 run_check() {
     local name="$1"
     local command="$2"
-    
+
     print_status "Running $name..."
-    
+
     if eval "$command" > /tmp/pre-commit-$name.log 2>&1; then
         print_success "$name passed"
         return 0
