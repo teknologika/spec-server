@@ -7,7 +7,7 @@ This guide helps you diagnose and resolve common issues with spec-server.
 ### Python Version Compatibility
 
 **Problem**: `spec-server` fails to install or run
-**Symptoms**: 
+**Symptoms**:
 - Import errors
 - Syntax errors
 - Package installation failures
@@ -73,6 +73,7 @@ pip install -e ".[dev]"
 **Problem**: Permission denied when creating specs
 **Symptoms**:
 - `PermissionError`
+- `OSError: [Errno 30] Read-only file system`
 - Cannot create directories or files
 
 **Solutions**:
@@ -88,7 +89,22 @@ pip install -e ".[dev]"
    spec-server
    ```
 
-3. **Run with appropriate user**:
+3. **Configure custom directory in MCP config**:
+   ```json
+   {
+     "mcpServers": {
+       "spec-server": {
+         "command": "spec-server",
+         "args": ["stdio"],
+         "env": {
+           "SPEC_SERVER_SPECS_DIR": "/path/to/writable/directory/specs"
+         }
+       }
+     }
+   }
+   ```
+
+4. **Run with appropriate user**:
    ```bash
    # Don't run as root unless necessary
    whoami
@@ -131,7 +147,7 @@ pip install -e ".[dev]"
    ```bash
    # For stdio transport
    echo '{"jsonrpc": "2.0", "method": "initialize", "id": 1}' | spec-server
-   
+
    # For SSE transport
    curl http://localhost:8000/sse
    ```
