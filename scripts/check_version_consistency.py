@@ -47,7 +47,16 @@ def main():
     init_version = extract_version(init_path, init_version_pattern)
     server_version = extract_version(server_path, server_version_pattern)
 
-    # Normalize server version (add 'v' prefix if missing)
+    # Normalize all versions to ensure they have 'v' prefix
+    if pyproject_version and not pyproject_version.startswith("v"):
+        pyproject_version = f"v{pyproject_version}"
+    
+    if test_version and not test_version.startswith("v"):
+        test_version = f"v{test_version}"
+        
+    if init_version and not init_version.startswith("v"):
+        init_version = f"v{init_version}"
+        
     if server_version and not server_version.startswith("v"):
         server_version = f"v{server_version}"
 
