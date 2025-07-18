@@ -83,6 +83,14 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: version-consistency
+        name: version-consistency
+        entry: python scripts/check_version_consistency.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^(pyproject\.toml|tests/test_basic\.py|src/spec_server/__init__\.py|src/spec_server/server\.py)$
+
       - id: safety-check
         name: safety-check
         entry: safety
