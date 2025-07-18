@@ -19,13 +19,13 @@ from .mcp_tools import MCPTools
 logger = logging.getLogger(__name__)
 
 # Initialize the FastMCP server with proper configuration
-mcp: FastMCP = FastMCP(name="spec-server", version="0.3.0")
+mcp: FastMCP = FastMCP(name="spec-server", version="0.4.0")
 
 # Initialize MCP tools
 mcp_tools = MCPTools()
 
-# Set system message with introduction prompt
-mcp.set_system_message(get_introduction_prompt())
+# Note: The introduction prompt is available through the get_introduction_prompt() function
+# and can be accessed by the LLM through the get_guidance tool
 
 
 @mcp.tool()

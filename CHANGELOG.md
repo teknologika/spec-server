@@ -25,6 +25,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.4.0] - 2025-07-18
+
+### Added
+- Comprehensive LLM guidance functionality with conversational approach
+- New `get_guidance` tool to provide phase-specific guidance
+- New `get_full_guidance` tool to access complete guidance document
+- Enhanced tool descriptions with conversation prompts
+- System message with introduction prompt
+- Documentation on effective LLM usage of spec-server
+
+### Changed
+- Updated server version to match package version
+- Enhanced MCP client configuration documentation
+- Improved troubleshooting guide for read-only file system errors
+
+### Deprecated
+- None
+
+### Removed
+- None
+
+### Fixed
+- None
+
+### Security
+- None
+
 ## [0.3.0] - 2025-07-17
 
 ### Added
