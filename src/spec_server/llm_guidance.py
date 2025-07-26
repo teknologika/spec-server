@@ -8,6 +8,8 @@ effectively through a conversational approach with users.
 from pathlib import Path
 from typing import Any, Dict
 
+from .errors import ErrorCode, SpecError
+
 # Path to guidance documents
 DOCS_DIR = Path(__file__).parent.parent.parent / "docs"
 
@@ -18,12 +20,49 @@ def get_llm_guidance_content() -> str:
 
     Returns:
         String containing the LLM guidance content
+
+    Raises:
+        SpecError: When the guidance document is not found or cannot be read
     """
     guidance_path = DOCS_DIR / "llm-guidance.md"
-    if guidance_path.exists():
+
+    if not guidance_path.exists():
+        raise SpecError(
+            message=f"LLM guidance document not found at path: {guidance_path}",
+            error_code=ErrorCode.DOCUMENT_NOT_FOUND,
+            details={
+                "expected_path": str(guidance_path),
+                "error_type": "FileNotFoundError",
+            },
+        )
+
+    try:
         return guidance_path.read_text(encoding="utf-8")
-    else:
-        return "LLM guidance document not found."
+    except PermissionError as e:
+        raise SpecError(
+            message=f"Permission denied reading LLM guidance document: {guidance_path}",
+            error_code=ErrorCode.FILE_ACCESS_DENIED,
+            details={"path": str(guidance_path), "error_type": "PermissionError"},
+            cause=e,
+        )
+    except UnicodeDecodeError as e:
+        raise SpecError(
+            message=f"Encoding error reading LLM guidance document: {guidance_path}",
+            error_code=ErrorCode.INTERNAL_ERROR,
+            details={
+                "path": str(guidance_path),
+                "error_type": "UnicodeDecodeError",
+                "encoding": "utf-8",
+            },
+            cause=e,
+        )
+    except Exception as e:
+        raise SpecError(
+            message=f"Unexpected error reading LLM guidance document: {guidance_path}",
+            error_code=ErrorCode.INTERNAL_ERROR,
+            details={"path": str(guidance_path), "error_type": type(e).__name__},
+            cause=e,
+        )
 
 
 def get_phase_guidance_content(phase: str = "general") -> Dict[str, Any]:

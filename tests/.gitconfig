@@ -1,0 +1,7 @@
+[alias]
+  # Optional custom entrypoint
+  safe = "!./scripts/safe-git.sh"
+
+  # Override default Git commands
+  commit = "!f() { ./scripts/safe-git.sh commit \"$@\"; }; f"
+  push = "!f() { ./scripts/safe-git.sh push \"$@\"; }; f"
