@@ -1,6 +1,5 @@
 """Tests for RequirementsLinker component."""
 
-
 from src.spec_server.models import TaskItem, TaskStatus
 from src.spec_server.requirements_linker import RequirementsLinker
 

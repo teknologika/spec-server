@@ -1,4 +1,5 @@
 """Tests for DocumentGenerator integration with standard task format."""
+
 import pytest
 
 from src.spec_server.document_generator import DocumentGenerationError, DocumentGenerator

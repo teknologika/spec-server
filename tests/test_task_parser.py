@@ -1,6 +1,5 @@
 """Tests for TaskParser component."""
 
-
 from src.spec_server.task_parser import TaskParser
 
 

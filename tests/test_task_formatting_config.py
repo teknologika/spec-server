@@ -1,4 +1,5 @@
 """Tests for task formatting configuration system."""
+
 import tempfile
 from pathlib import Path
 

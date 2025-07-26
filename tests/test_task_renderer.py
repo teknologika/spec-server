@@ -1,6 +1,5 @@
 """Tests for TaskRenderer component."""
 
-
 from src.spec_server.models import ContentBlock, TaskItem, TaskStatus
 from src.spec_server.task_renderer import TaskRenderer
 
