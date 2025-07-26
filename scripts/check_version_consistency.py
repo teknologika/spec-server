@@ -2,7 +2,8 @@
 """
 Script to check version consistency across the project.
 
-This script verifies that the version in test_basic.py matches the version in pyproject.toml.
+This script verifies that the version in test_basic.py matches the
+version in pyproject.toml.
 It's designed to be used as a pre-commit hook to prevent version mismatch issues.
 """
 
@@ -50,13 +51,13 @@ def main():
     # Normalize all versions to ensure they have 'v' prefix
     if pyproject_version and not pyproject_version.startswith("v"):
         pyproject_version = f"v{pyproject_version}"
-    
+
     if test_version and not test_version.startswith("v"):
         test_version = f"v{test_version}"
-        
+
     if init_version and not init_version.startswith("v"):
         init_version = f"v{init_version}"
-        
+
     if server_version and not server_version.startswith("v"):
         server_version = f"v{server_version}"
 
@@ -67,9 +68,7 @@ def main():
     print(f"server.py version: {server_version}")
 
     # Check for consistency
-    versions = [
-        v for v in [pyproject_version, test_version, init_version, server_version] if v
-    ]
+    versions = [v for v in [pyproject_version, test_version, init_version, server_version] if v]
     if not versions:
         print("Error: Could not extract version information from any file")
         return 1
@@ -80,9 +79,7 @@ def main():
     if not consistent:
         print("\nERROR: Version mismatch detected!")
         if pyproject_version != reference_version:
-            print(
-                f"  - pyproject.toml: {pyproject_version} (expected: {reference_version})"
-            )
+            print(f"  - pyproject.toml: {pyproject_version} (expected: {reference_version})")
         if test_version != reference_version:
             print(f"  - test_basic.py: {test_version} (expected: {reference_version})")
         if init_version != reference_version:

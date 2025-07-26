@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spec-server"
-version = "0.4.1"
+version = "0.3.0"
 description = "MCP server for structured feature development through Requirements → Design → Tasks workflow"
 readme = "README.md"
 keywords = [ "mcp", "specification", "feature-development", "requirements", "design", "tasks", "workflow",]
@@ -30,12 +30,12 @@ Repository = "https://github.com/teknologika/spec-server"
 Issues = "https://github.com/teknologika/spec-server/issues"
 
 [tool.black]
-line-length = 88
+line-length = 200
 target-version = [ "py312",]
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 200
 
 [tool.mypy]
 python_version = "3.12"

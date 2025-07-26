@@ -9,11 +9,7 @@ from unittest.mock import patch
 import pytest
 
 from spec_server.errors import ErrorCode, SpecError
-from spec_server.llm_guidance import (
-    get_introduction_prompt,
-    get_llm_guidance_content,
-    get_phase_guidance_content,
-)
+from spec_server.llm_guidance import get_introduction_prompt, get_llm_guidance_content, get_phase_guidance_content
 
 
 class TestGetLlmGuidanceContent:
@@ -61,9 +57,7 @@ class TestGetLlmGuidanceContent:
 
                 error = exc_info.value
                 assert error.error_code == ErrorCode.FILE_ACCESS_DENIED
-                assert (
-                    "Permission denied reading LLM guidance document:" in error.message
-                )
+                assert "Permission denied reading LLM guidance document:" in error.message
                 assert error.details["error_type"] == "PermissionError"
             finally:
                 # Restore permissions for cleanup
@@ -154,10 +148,7 @@ class TestGetPhaseGuidanceContent:
         assert "conversation_starters" in guidance
 
         # Check specific content
-        assert (
-            "Should we use a particular development methodology?"
-            in guidance["questions_to_ask"]
-        )
+        assert "Should we use a particular development methodology?" in guidance["questions_to_ask"]
         assert "# Implementation Tasks for [Feature Name]" in guidance["template"]
 
     def test_get_general_guidance(self):
@@ -171,10 +162,7 @@ class TestGetPhaseGuidanceContent:
         assert "conversation_starters" in guidance
 
         # Check specific content
-        assert (
-            "Requirements Phase: Define what needs to be built"
-            in guidance["workflow_overview"]
-        )
+        assert "Requirements Phase: Define what needs to be built" in guidance["workflow_overview"]
 
     def test_get_guidance_default_general(self):
         """Test that default phase returns general guidance."""

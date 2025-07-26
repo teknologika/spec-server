@@ -105,9 +105,7 @@ class TestSpecTestFixtures:
         assert (temp_spec_dir / "README.md").exists()
 
         # Verify spec contains file references (read without resolution to see raw references)
-        spec_content = fixtures.mcp_tools.read_spec_document(
-            "api-test", "requirements", resolve_references=False
-        )
+        spec_content = fixtures.mcp_tools.read_spec_document("api-test", "requirements", resolve_references=False)
         assert "#[[file:api-spec.json]]" in spec_content["content"]
         assert "#[[file:README.md]]" in spec_content["content"]
 

@@ -288,9 +288,7 @@ class TestTaskExecutor:
         - [ ] 2 Second task
         """
 
-        updated_content = executor.update_task_status(
-            content, "1", TaskStatus.IN_PROGRESS
-        )
+        updated_content = executor.update_task_status(content, "1", TaskStatus.IN_PROGRESS)
 
         assert "- [-] 1 First task" in updated_content
         assert "- [ ] 2 Second task" in updated_content
@@ -306,9 +304,7 @@ class TestTaskExecutor:
         - [ ] 2 Second task
         """
 
-        updated_content = executor.update_task_status(
-            content, "1", TaskStatus.COMPLETED
-        )
+        updated_content = executor.update_task_status(content, "1", TaskStatus.COMPLETED)
 
         assert "- [x] 1 First task" in updated_content
         assert "- [ ] 2 Second task" in updated_content
@@ -322,9 +318,7 @@ class TestTaskExecutor:
         - [ ] 2 Not started task
         """
 
-        updated_content = executor.update_task_status(
-            content, "1", TaskStatus.NOT_STARTED
-        )
+        updated_content = executor.update_task_status(content, "1", TaskStatus.NOT_STARTED)
 
         assert "- [ ] 1 Completed task" in updated_content
         assert "- [ ] 2 Not started task" in updated_content
@@ -355,9 +349,7 @@ class TestTaskExecutor:
           - Some details
         """
 
-        updated_content = executor.update_task_status(
-            content, "1.1", TaskStatus.COMPLETED
-        )
+        updated_content = executor.update_task_status(content, "1.1", TaskStatus.COMPLETED)
 
         # Should preserve the original indentation
         assert "- [x] 1.1 Sub task with indentation" in updated_content
@@ -527,9 +519,7 @@ class TestTaskExecutor:
         """Test checking if task with no dependencies can be executed."""
         executor = TaskExecutor()
 
-        task = Task(
-            identifier="1", description="Independent", status=TaskStatus.NOT_STARTED
-        )
+        task = Task(identifier="1", description="Independent", status=TaskStatus.NOT_STARTED)
         all_tasks = [task]
 
         can_execute = executor.can_execute_task(task, all_tasks)
@@ -539,9 +529,7 @@ class TestTaskExecutor:
         """Test checking if completed task can be executed."""
         executor = TaskExecutor()
 
-        task = Task(
-            identifier="1", description="Completed", status=TaskStatus.COMPLETED
-        )
+        task = Task(identifier="1", description="Completed", status=TaskStatus.COMPLETED)
         all_tasks = [task]
 
         can_execute = executor.can_execute_task(task, all_tasks)
@@ -629,9 +617,7 @@ class TestTaskExecutionContext:
         design_content = "Design content"
         tasks_content = "Tasks content"
 
-        context = TaskExecutionContext(
-            spec, task, req_content, design_content, tasks_content
-        )
+        context = TaskExecutionContext(spec, task, req_content, design_content, tasks_content)
 
         assert context.requirements_content == req_content
         assert context.design_content == design_content
@@ -650,9 +636,7 @@ class TestTaskExecutionContext:
     def test_get_referenced_requirements_no_content(self):
         """Test getting referenced requirements when no requirements content."""
         spec = Spec(feature_name="test", base_path=Path("/tmp/test"))
-        task = Task(
-            identifier="1", description="Test task", requirements_refs=["1.1", "1.2"]
-        )
+        task = Task(identifier="1", description="Test task", requirements_refs=["1.1", "1.2"])
 
         context = TaskExecutionContext(spec, task)
 
@@ -662,9 +646,7 @@ class TestTaskExecutionContext:
     def test_get_referenced_requirements_with_refs(self):
         """Test getting referenced requirements when task has refs."""
         spec = Spec(feature_name="test", base_path=Path("/tmp/test"))
-        task = Task(
-            identifier="1", description="Test task", requirements_refs=["1.1", "2.3"]
-        )
+        task = Task(identifier="1", description="Test task", requirements_refs=["1.1", "2.3"])
 
         context = TaskExecutionContext(spec, task, "Requirements content")
 

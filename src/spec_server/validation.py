@@ -78,26 +78,19 @@ class InputValidator:
 
         # Check format first (before sanitization to catch case issues)
         if not cls.FEATURE_NAME_PATTERN.match(feature_name.strip()):
-            errors.append(
-                "Feature name must be in kebab-case format (lowercase letters, numbers, and hyphens only). "
-                "Examples: 'user-auth', 'data-export', 'api-v2'"
-            )
+            errors.append("Feature name must be in kebab-case format (lowercase letters, numbers, and hyphens only). " "Examples: 'user-auth', 'data-export', 'api-v2'")
 
         # Sanitize: strip whitespace and convert to lowercase
         sanitized = feature_name.strip().lower()
 
         # Check length
         if len(sanitized) > cls.MAX_FEATURE_NAME_LENGTH:
-            errors.append(
-                f"Feature name too long (max {cls.MAX_FEATURE_NAME_LENGTH} characters)"
-            )
+            errors.append(f"Feature name too long (max {cls.MAX_FEATURE_NAME_LENGTH} characters)")
 
         # Check for reserved names
         reserved_names = {"test", "spec", "server", "admin", "root", "config"}
         if sanitized in reserved_names:
-            warnings.append(
-                f"'{sanitized}' is a reserved name, consider using a more specific name"
-            )
+            warnings.append(f"'{sanitized}' is a reserved name, consider using a more specific name")
 
         is_valid = len(errors) == 0
         return ValidationResult(
@@ -131,10 +124,7 @@ class InputValidator:
         sanitized = document_type.strip().lower()
 
         if sanitized not in cls.VALID_DOCUMENT_TYPES:
-            errors.append(
-                f"Invalid document type '{document_type}'. "
-                f"Valid types: {', '.join(sorted(cls.VALID_DOCUMENT_TYPES))}"
-            )
+            errors.append(f"Invalid document type '{document_type}'. " f"Valid types: {', '.join(sorted(cls.VALID_DOCUMENT_TYPES))}")
 
         is_valid = len(errors) == 0
         return ValidationResult(
@@ -163,9 +153,7 @@ class InputValidator:
 
         # Check length
         if len(content) > cls.MAX_DOCUMENT_CONTENT_LENGTH:
-            errors.append(
-                f"Document content too large (max {cls.MAX_DOCUMENT_CONTENT_LENGTH} characters)"
-            )
+            errors.append(f"Document content too large (max {cls.MAX_DOCUMENT_CONTENT_LENGTH} characters)")
 
         # Check for potentially dangerous content
         dangerous_patterns = [
@@ -177,9 +165,7 @@ class InputValidator:
 
         for pattern in dangerous_patterns:
             if re.search(pattern, content, re.IGNORECASE):
-                warnings.append(
-                    f"Content contains potentially dangerous pattern: {pattern}"
-                )
+                warnings.append(f"Content contains potentially dangerous pattern: {pattern}")
 
         # Sanitize: normalize line endings
         sanitized = content.replace("\r\n", "\n").replace("\r", "\n")
@@ -219,9 +205,7 @@ class InputValidator:
             errors.append("Initial idea too short (minimum 10 characters)")
 
         if len(sanitized) > cls.MAX_IDEA_LENGTH:
-            errors.append(
-                f"Initial idea too long (max {cls.MAX_IDEA_LENGTH} characters)"
-            )
+            errors.append(f"Initial idea too long (max {cls.MAX_IDEA_LENGTH} characters)")
 
         is_valid = len(errors) == 0
         return ValidationResult(
@@ -258,15 +242,11 @@ class InputValidator:
             return ValidationResult(is_valid=False, errors=errors)
 
         if len(sanitized) > cls.MAX_TASK_IDENTIFIER_LENGTH:
-            errors.append(
-                f"Task identifier too long (max {cls.MAX_TASK_IDENTIFIER_LENGTH} characters)"
-            )
+            errors.append(f"Task identifier too long (max {cls.MAX_TASK_IDENTIFIER_LENGTH} characters)")
 
         # Validate format (should be like "1", "1.2", "2.3.1", etc.)
         if not re.match(r"^\d+(\.\d+)*$", sanitized):
-            errors.append(
-                "Task identifier must be in format like '1', '1.2', '2.3.1', etc."
-            )
+            errors.append("Task identifier must be in format like '1', '1.2', '2.3.1', etc.")
 
         is_valid = len(errors) == 0
         return ValidationResult(
@@ -276,9 +256,7 @@ class InputValidator:
         )
 
     @classmethod
-    def validate_file_path(
-        cls, file_path: str, allow_absolute: bool = False
-    ) -> ValidationResult:
+    def validate_file_path(cls, file_path: str, allow_absolute: bool = False) -> ValidationResult:
         """
         Validate and sanitize a file path for security.
 
@@ -384,16 +362,12 @@ def validate_create_spec_params(feature_name: str, initial_idea: str) -> Dict[st
     # Validate feature name
     name_result = InputValidator.validate_feature_name(feature_name)
     if not name_result.is_valid:
-        raise ErrorFactory.invalid_spec_name(
-            feature_name, "; ".join(name_result.errors)
-        )
+        raise ErrorFactory.invalid_spec_name(feature_name, "; ".join(name_result.errors))
 
     # Validate initial idea
     idea_result = InputValidator.validate_initial_idea(initial_idea)
     if not idea_result.is_valid:
-        raise ErrorFactory.validation_error(
-            "initial_idea", initial_idea, "; ".join(idea_result.errors)
-        )
+        raise ErrorFactory.validation_error("initial_idea", initial_idea, "; ".join(idea_result.errors))
 
     return {
         "feature_name": name_result.sanitized_value,
@@ -401,9 +375,7 @@ def validate_create_spec_params(feature_name: str, initial_idea: str) -> Dict[st
     }
 
 
-def validate_update_spec_params(
-    feature_name: str, document_type: str, content: str, phase_approval: Any = False
-) -> Dict[str, Any]:
+def validate_update_spec_params(feature_name: str, document_type: str, content: str, phase_approval: Any = False) -> Dict[str, Any]:
     """
     Validate parameters for update_spec_document operation.
 
@@ -422,30 +394,22 @@ def validate_update_spec_params(
     # Validate feature name
     name_result = InputValidator.validate_feature_name(feature_name)
     if not name_result.is_valid:
-        raise ErrorFactory.invalid_spec_name(
-            feature_name, "; ".join(name_result.errors)
-        )
+        raise ErrorFactory.invalid_spec_name(feature_name, "; ".join(name_result.errors))
 
     # Validate document type
     type_result = InputValidator.validate_document_type(document_type)
     if not type_result.is_valid:
-        raise ErrorFactory.validation_error(
-            "document_type", document_type, "; ".join(type_result.errors)
-        )
+        raise ErrorFactory.validation_error("document_type", document_type, "; ".join(type_result.errors))
 
     # Validate content
     content_result = InputValidator.validate_document_content(content)
     if not content_result.is_valid:
-        raise ErrorFactory.validation_error(
-            "content", "document content", "; ".join(content_result.errors)
-        )
+        raise ErrorFactory.validation_error("content", "document content", "; ".join(content_result.errors))
 
     # Validate phase approval
     approval_result = InputValidator.validate_boolean(phase_approval, "phase_approval")
     if not approval_result.is_valid:
-        raise ErrorFactory.validation_error(
-            "phase_approval", phase_approval, "; ".join(approval_result.errors)
-        )
+        raise ErrorFactory.validation_error("phase_approval", phase_approval, "; ".join(approval_result.errors))
 
     return {
         "feature_name": name_result.sanitized_value,
@@ -455,9 +419,7 @@ def validate_update_spec_params(
     }
 
 
-def validate_read_spec_params(
-    feature_name: str, document_type: str, resolve_references: Any = True
-) -> Dict[str, Any]:
+def validate_read_spec_params(feature_name: str, document_type: str, resolve_references: Any = True) -> Dict[str, Any]:
     """
     Validate parameters for read_spec_document operation.
 
@@ -475,25 +437,17 @@ def validate_read_spec_params(
     # Validate feature name
     name_result = InputValidator.validate_feature_name(feature_name)
     if not name_result.is_valid:
-        raise ErrorFactory.invalid_spec_name(
-            feature_name, "; ".join(name_result.errors)
-        )
+        raise ErrorFactory.invalid_spec_name(feature_name, "; ".join(name_result.errors))
 
     # Validate document type
     type_result = InputValidator.validate_document_type(document_type)
     if not type_result.is_valid:
-        raise ErrorFactory.validation_error(
-            "document_type", document_type, "; ".join(type_result.errors)
-        )
+        raise ErrorFactory.validation_error("document_type", document_type, "; ".join(type_result.errors))
 
     # Validate resolve_references
-    resolve_result = InputValidator.validate_boolean(
-        resolve_references, "resolve_references"
-    )
+    resolve_result = InputValidator.validate_boolean(resolve_references, "resolve_references")
     if not resolve_result.is_valid:
-        raise ErrorFactory.validation_error(
-            "resolve_references", resolve_references, "; ".join(resolve_result.errors)
-        )
+        raise ErrorFactory.validation_error("resolve_references", resolve_references, "; ".join(resolve_result.errors))
 
     return {
         "feature_name": name_result.sanitized_value,
@@ -502,9 +456,7 @@ def validate_read_spec_params(
     }
 
 
-def validate_task_params(
-    feature_name: str, task_identifier: Optional[str] = None
-) -> Dict[str, Any]:
+def validate_task_params(feature_name: str, task_identifier: Optional[str] = None) -> Dict[str, Any]:
     """
     Validate parameters for task operations.
 
@@ -521,16 +473,12 @@ def validate_task_params(
     # Validate feature name
     name_result = InputValidator.validate_feature_name(feature_name)
     if not name_result.is_valid:
-        raise ErrorFactory.invalid_spec_name(
-            feature_name, "; ".join(name_result.errors)
-        )
+        raise ErrorFactory.invalid_spec_name(feature_name, "; ".join(name_result.errors))
 
     # Validate task identifier
     task_result = InputValidator.validate_task_identifier(task_identifier)
     if not task_result.is_valid:
-        raise ErrorFactory.validation_error(
-            "task_identifier", task_identifier, "; ".join(task_result.errors)
-        )
+        raise ErrorFactory.validation_error("task_identifier", task_identifier, "; ".join(task_result.errors))
 
     return {
         "feature_name": name_result.sanitized_value,

@@ -96,9 +96,7 @@ class TestBasicSpecOperations:
         assert "not found" in str(exc_info.value)
 
         # Create spec
-        result = self.mcp_tools.create_spec(
-            feature_name, "Test feature for error handling"
-        )
+        result = self.mcp_tools.create_spec(feature_name, "Test feature for error handling")
         assert result["success"] is True
 
         # Try to create duplicate spec
@@ -140,22 +138,16 @@ class TestFileReferenceBasics:
         api_spec_file.write_text(json.dumps(api_spec_content, indent=2))
 
         # Create spec
-        result = self.mcp_tools.create_spec(
-            feature_name, "API implementation based on OpenAPI spec"
-        )
+        result = self.mcp_tools.create_spec(feature_name, "API implementation based on OpenAPI spec")
         assert result["success"] is True
 
         # Read document without reference resolution
-        result = self.mcp_tools.read_spec_document(
-            feature_name, "requirements", resolve_references=False
-        )
+        result = self.mcp_tools.read_spec_document(feature_name, "requirements", resolve_references=False)
         assert result["success"] is True
         assert result["resolve_references"] is False
 
         # Read document with reference resolution
-        result = self.mcp_tools.read_spec_document(
-            feature_name, "requirements", resolve_references=True
-        )
+        result = self.mcp_tools.read_spec_document(feature_name, "requirements", resolve_references=True)
         assert result["success"] is True
         assert result["resolve_references"] is True
 
@@ -194,9 +186,7 @@ class TestValidationIntegration:
         feature_name = "test-spec"
 
         # Create valid spec
-        result = self.mcp_tools.create_spec(
-            feature_name, "Test document type validation"
-        )
+        result = self.mcp_tools.create_spec(feature_name, "Test document type validation")
         assert result["success"] is True
 
         # Test invalid document types
@@ -360,9 +350,7 @@ class TestErrorRecovery:
             pass  # Expected
 
         # System should still work normally after errors
-        result = self.mcp_tools.create_spec(
-            "recovery-test", "Test recovery after errors"
-        )
+        result = self.mcp_tools.create_spec("recovery-test", "Test recovery after errors")
         assert result["success"] is True
 
         result = self.mcp_tools.list_specs()

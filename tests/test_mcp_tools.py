@@ -147,9 +147,7 @@ Updated requirements for the test feature.
 1. WHEN user updates requirements THEN system SHALL accept the changes
 """
 
-        result = mcp_tools.update_spec_document(
-            "test-feature", "requirements", new_content
-        )
+        result = mcp_tools.update_spec_document("test-feature", "requirements", new_content)
 
         assert result["success"] is True
         assert result["document_type"] == "requirements"
@@ -178,9 +176,7 @@ Test requirements for approval.
 1. WHEN user approves requirements THEN system SHALL advance to design phase
 """
 
-        result = mcp_tools.update_spec_document(
-            "test-feature", "requirements", new_content, phase_approval=True
-        )
+        result = mcp_tools.update_spec_document("test-feature", "requirements", new_content, phase_approval=True)
 
         assert result["success"] is True
         assert result["current_phase"] == Phase.DESIGN.value
@@ -377,9 +373,7 @@ class TestMCPToolsWorkflow:
     def test_complete_workflow(self, mcp_tools):
         """Test complete spec workflow from creation to task execution."""
         # 1. Create spec
-        create_result = mcp_tools.create_spec(
-            "user-auth", "Implement user authentication with login and registration"
-        )
+        create_result = mcp_tools.create_spec("user-auth", "Implement user authentication with login and registration")
         assert create_result["success"] is True
 
         # 2. List specs
@@ -422,9 +416,7 @@ This feature implements user authentication with secure login and registration c
 3. WHEN user is authenticated THEN system SHALL provide access token
 """
 
-        update_result = mcp_tools.update_spec_document(
-            "user-auth", "requirements", updated_requirements, phase_approval=True
-        )
+        update_result = mcp_tools.update_spec_document("user-auth", "requirements", updated_requirements, phase_approval=True)
         assert update_result["success"] is True
         assert update_result["current_phase"] == Phase.DESIGN.value
 
@@ -480,9 +472,7 @@ User authentication system with JWT tokens and bcrypt password hashing.
 - Security testing for authentication flows
 """
 
-        design_update_result = mcp_tools.update_spec_document(
-            "user-auth", "design", updated_design, phase_approval=True
-        )
+        design_update_result = mcp_tools.update_spec_document("user-auth", "design", updated_design, phase_approval=True)
         assert design_update_result["success"] is True
         assert design_update_result["current_phase"] == Phase.TASKS.value
 
@@ -549,19 +539,13 @@ See API specification: #[[file:api-spec.md]]
 1. WHEN API is implemented THEN it SHALL match the specification
 """
 
-        update_result = mcp_tools.update_spec_document(
-            "api-feature", "requirements", requirements_with_ref
-        )
+        update_result = mcp_tools.update_spec_document("api-feature", "requirements", requirements_with_ref)
         assert update_result["success"] is True
 
         # Read with reference resolution
-        read_result = mcp_tools.read_spec_document(
-            "api-feature", "requirements", resolve_references=True
-        )
+        read_result = mcp_tools.read_spec_document("api-feature", "requirements", resolve_references=True)
         assert read_result["success"] is True
-        assert (
-            "POST /auth/login" in read_result["content"]
-        )  # Reference should be resolved
+        assert "POST /auth/login" in read_result["content"]  # Reference should be resolved
         assert len(read_result["reference_errors"]) == 0
 
     def test_error_handling_scenarios(self, mcp_tools):
@@ -659,9 +643,7 @@ class TestMCPToolsEdgeCases:
 
 """
 
-        result = mcp_tools.update_spec_document(
-            "large-feature", "requirements", large_content
-        )
+        result = mcp_tools.update_spec_document("large-feature", "requirements", large_content)
         assert result["success"] is True
 
         # Verify we can read it back
@@ -692,9 +674,7 @@ Updated requirements version {i+1}.
 
 1. WHEN user updates to version {i+1} THEN system SHALL handle it correctly
 """
-            result = mcp_tools.update_spec_document(
-                "concurrent-test", "requirements", content
-            )
+            result = mcp_tools.update_spec_document("concurrent-test", "requirements", content)
             assert result["success"] is True
 
         # Verify final state
@@ -729,9 +709,7 @@ Special symbols: ©®™ ±×÷ ←→↑↓ ♠♣♥♦
 2. WHEN system displays unicode THEN it SHALL render properly
 """
 
-        update_result = mcp_tools.update_spec_document(
-            "unicode-feature", "requirements", unicode_content
-        )
+        update_result = mcp_tools.update_spec_document("unicode-feature", "requirements", unicode_content)
         assert update_result["success"] is True
 
         # Verify unicode is preserved

@@ -83,13 +83,9 @@ class TestPhaseApproval:
         assert result1["current_phase"] == "design"
 
         # Update design with approval to advance to tasks
-        result2 = mcp_tools.update_spec_document(
-            "test-feature", "design", "# Design Document", phase_approval=True
-        )
+        result2 = mcp_tools.update_spec_document("test-feature", "design", "# Design Document", phase_approval=True)
         assert result2["current_phase"] == "tasks"
 
         # Update tasks with approval to advance to complete
-        result3 = mcp_tools.update_spec_document(
-            "test-feature", "tasks", "# Tasks Document", phase_approval=True
-        )
+        result3 = mcp_tools.update_spec_document("test-feature", "tasks", "# Tasks Document", phase_approval=True)
         assert result3["current_phase"] == "complete"

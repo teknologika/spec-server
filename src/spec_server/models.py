@@ -11,7 +11,7 @@ import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -37,9 +37,7 @@ class Spec(BaseModel):
     """Core model representing a complete feature specification."""
 
     feature_name: str = Field(..., description="Kebab-case identifier for the feature")
-    current_phase: Phase = Field(
-        default=Phase.REQUIREMENTS, description="Current workflow phase"
-    )
+    current_phase: Phase = Field(default=Phase.REQUIREMENTS, description="Current workflow phase")
     created_at: str = Field(
         default_factory=lambda: datetime.now().isoformat(),
         description="ISO timestamp of spec creation",
@@ -59,9 +57,7 @@ class Spec(BaseModel):
         if not v:
             raise ValueError("Feature name cannot be empty")
         if not v.replace("-", "").replace("_", "").isalnum():
-            raise ValueError(
-                "Feature name must contain only alphanumeric characters, hyphens, and underscores"
-            )
+            raise ValueError("Feature name must contain only alphanumeric characters, hyphens, and underscores")
         if v != v.lower():
             raise ValueError("Feature name must be lowercase")
         return v
@@ -88,14 +84,10 @@ class SpecMetadata(BaseModel):
 
     feature_name: str = Field(..., description="Kebab-case identifier for the feature")
     current_phase: Phase = Field(..., description="Current workflow phase")
-    has_requirements: bool = Field(
-        default=False, description="Whether requirements.md exists"
-    )
+    has_requirements: bool = Field(default=False, description="Whether requirements.md exists")
     has_design: bool = Field(default=False, description="Whether design.md exists")
     has_tasks: bool = Field(default=False, description="Whether tasks.md exists")
-    task_progress: Optional[str] = Field(
-        default=None, description="Progress summary like '3/10 completed'"
-    )
+    task_progress: Optional[str] = Field(default=None, description="Progress summary like '3/10 completed'")
     created_at: str = Field(..., description="ISO timestamp of spec creation")
     updated_at: str = Field(..., description="ISO timestamp of last modification")
 
@@ -107,18 +99,10 @@ class Task(BaseModel):
 
     identifier: str = Field(..., description="Task number like '1.2' or '3'")
     description: str = Field(..., description="Task description/objective")
-    requirements_refs: List[str] = Field(
-        default_factory=list, description="References to specific requirements"
-    )
-    status: TaskStatus = Field(
-        default=TaskStatus.NOT_STARTED, description="Current completion status"
-    )
-    parent_task: Optional[str] = Field(
-        default=None, description="Parent task identifier if this is a sub-task"
-    )
-    sub_tasks: List[str] = Field(
-        default_factory=list, description="List of sub-task identifiers"
-    )
+    requirements_refs: List[str] = Field(default_factory=list, description="References to specific requirements")
+    status: TaskStatus = Field(default=TaskStatus.NOT_STARTED, description="Current completion status")
+    parent_task: Optional[str] = Field(default=None, description="Parent task identifier if this is a sub-task")
+    sub_tasks: List[str] = Field(default_factory=list, description="List of sub-task identifiers")
 
     model_config = ConfigDict(use_enum_values=True)
 
@@ -136,18 +120,125 @@ class Task(BaseModel):
         return v
 
 
+# New models for task formatting feature
+
+
+class TaskItem(BaseModel):
+    """Enhanced task model for the task formatting pipeline."""
+
+    identifier: str = Field(..., description="Task number like '1.2' or '3'")
+    description: str = Field(..., description="Task description/objective")
+    status: TaskStatus = Field(default=TaskStatus.NOT_STARTED, description="Current completion status")
+    requirements_refs: List[str] = Field(
+        default_factory=list,
+        description="References to specific requirements like ['2.1', '2.2', '3.1']",
+    )
+    parent_task: Optional[str] = Field(default=None, description="Parent task identifier if this is a sub-task")
+    sub_tasks: List[str] = Field(default_factory=list, description="List of sub-task identifiers")
+    content_type: str = Field(
+        default="task",
+        description="Content type: 'task', 'requirement', 'design', 'other'",
+    )
+    original_line: int = Field(
+        default=0,
+        description="Original line number in source document for error reporting",
+    )
+
+    model_config = ConfigDict(use_enum_values=True)
+
+    @field_validator("identifier")
+    @classmethod
+    def validate_identifier(cls, v: str) -> str:
+        """Validate task identifier format."""
+        if not v:
+            raise ValueError("Task identifier cannot be empty")
+        # Allow formats like "1", "1.1", "1.2.3", etc.
+        parts = v.split(".")
+        for part in parts:
+            if not part.isdigit():
+                raise ValueError("Task identifier must contain only numbers and dots")
+        return v
+
+    @field_validator("content_type")
+    @classmethod
+    def validate_content_type(cls, v: str) -> str:
+        """Validate content type."""
+        valid_types = ["task", "requirement", "design", "other"]
+        if v not in valid_types:
+            raise ValueError(f"Content type must be one of: {valid_types}")
+        return v
+
+
+class ContentBlock(BaseModel):
+    """Represents a block of content for classification and redistribution."""
+
+    content: str = Field(..., description="The actual content text")
+    content_type: str = Field(
+        ...,
+        description="Classified type: 'task', 'requirement', 'design', 'header', 'other'",
+    )
+    confidence: float = Field(..., description="Classification confidence from 0.0 to 1.0", ge=0.0, le=1.0)
+    suggested_location: str = Field(
+        ...,
+        description="Suggested document location: 'tasks', 'requirements', 'design'",
+    )
+    line_number: int = Field(..., description="Line number in original document", ge=0)
+
+    @field_validator("content_type")
+    @classmethod
+    def validate_content_type(cls, v: str) -> str:
+        """Validate content type."""
+        valid_types = ["task", "requirement", "design", "header", "other"]
+        if v not in valid_types:
+            raise ValueError(f"Content type must be one of: {valid_types}")
+        return v
+
+    @field_validator("suggested_location")
+    @classmethod
+    def validate_suggested_location(cls, v: str) -> str:
+        """Validate suggested location."""
+        valid_locations = ["tasks", "requirements", "design"]
+        if v not in valid_locations:
+            raise ValueError(f"Suggested location must be one of: {valid_locations}")
+        return v
+
+
+class FormattingResult(BaseModel):
+    """Result of task document formatting operation."""
+
+    formatted_tasks: str = Field(..., description="Formatted task document content")
+    moved_content: Dict[str, List[str]] = Field(
+        default_factory=dict,
+        description="Content moved to other documents: document_type -> content_blocks",
+    )
+    requirements_added: List[str] = Field(
+        default_factory=list,
+        description="Task identifiers that received requirements references",
+    )
+    changes_made: List[str] = Field(default_factory=list, description="Human-readable descriptions of changes made")
+    errors: List[str] = Field(default_factory=list, description="Error messages encountered during formatting")
+
+
+class TaskValidationResult(BaseModel):
+    """Result of LLM-based task completion validation."""
+
+    is_complete: bool = Field(..., description="Whether the task is considered complete")
+    confidence: float = Field(..., description="LLM confidence in the completion assessment", ge=0.0, le=1.0)
+    feedback: str = Field(..., description="LLM explanation of completion status")
+    missing_items: List[str] = Field(
+        default_factory=list,
+        description="Specific items that need attention if incomplete",
+    )
+    validation_prompt: str = Field(..., description="Prompt used for LLM validation")
+    llm_response: str = Field(..., description="Full LLM response for debugging")
+
+
 class DocumentTemplate(BaseModel):
     """Template configuration for generating spec documents."""
 
-    template_type: str = Field(
-        ..., description="Type: 'requirements', 'design', or 'tasks'"
-    )
-    sections: List[str] = Field(
-        ..., description="Required sections for this document type"
-    )
-    format_rules: dict = Field(
-        default_factory=dict, description="Formatting rules and validation patterns"
-    )
+    template_type: str = Field(..., description="Type: 'requirements', 'design', or 'tasks'")
+    sections: List[str] = Field(..., description="Required sections for this document type")
+    format_rules: dict = Field(default_factory=dict, description="Formatting rules and validation patterns")
 
     @field_validator("template_type")
     @classmethod
@@ -198,19 +289,11 @@ DEFAULT_TASKS_TEMPLATE = DocumentTemplate(
 class FileReference(BaseModel):
     """Represents a file reference found in spec documents."""
 
-    reference_text: str = Field(
-        ..., description="Original reference text like '#[[file:path/to/file.md]]'"
-    )
+    reference_text: str = Field(..., description="Original reference text like '#[[file:path/to/file.md]]'")
     file_path: Path = Field(..., description="Parsed file path from the reference")
-    resolved_content: Optional[str] = Field(
-        default=None, description="Content of the referenced file"
-    )
-    exists: bool = Field(
-        default=False, description="Whether the referenced file exists"
-    )
-    error_message: Optional[str] = Field(
-        default=None, description="Error message if file cannot be resolved"
-    )
+    resolved_content: Optional[str] = Field(default=None, description="Content of the referenced file")
+    exists: bool = Field(default=False, description="Whether the referenced file exists")
+    error_message: Optional[str] = Field(default=None, description="Error message if file cannot be resolved")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -229,9 +312,7 @@ class FileReference(BaseModel):
         return v
 
     @classmethod
-    def from_reference_text(
-        cls, reference_text: str, base_path: Optional[Path] = None
-    ) -> "FileReference":
+    def from_reference_text(cls, reference_text: str, base_path: Optional[Path] = None) -> "FileReference":
         """Create a FileReference from reference text."""
         # Extract the file path from the reference text
         match = re.match(r"#\[\[file:([^\]]+)\]\]", reference_text)
@@ -265,9 +346,7 @@ class FileReferenceResolver:
         for match in self.FILE_REFERENCE_PATTERN.finditer(content):
             reference_text = match.group(0)
             try:
-                file_ref = FileReference.from_reference_text(
-                    reference_text, self.base_path
-                )
+                file_ref = FileReference.from_reference_text(reference_text, self.base_path)
                 references.append(file_ref)
             except ValueError as e:
                 # Create a reference with error information
@@ -300,9 +379,7 @@ class FileReferenceResolver:
 
         return file_ref
 
-    def resolve_all_references(
-        self, references: List[FileReference]
-    ) -> List[FileReference]:
+    def resolve_all_references(self, references: List[FileReference]) -> List[FileReference]:
         """Resolve all file references in the list."""
         return [self.resolve_reference(ref) for ref in references]
 
@@ -327,15 +404,11 @@ class FileReferenceResolver:
         for ref in references:
             if resolve_content and ref.resolved_content is not None:
                 # Replace with actual file content
-                result_content = result_content.replace(
-                    ref.reference_text, ref.resolved_content
-                )
+                result_content = result_content.replace(ref.reference_text, ref.resolved_content)
             elif resolve_content and ref.error_message:
                 # Replace with error message
                 error_placeholder = f"[ERROR: {ref.error_message}]"
-                result_content = result_content.replace(
-                    ref.reference_text, error_placeholder
-                )
+                result_content = result_content.replace(ref.reference_text, error_placeholder)
             else:
                 # Replace with placeholder showing the file path
                 placeholder = f"[File: {ref.file_path}]"

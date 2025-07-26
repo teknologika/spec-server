@@ -7,12 +7,9 @@ before distribution.
 """
 
 import ast
-import json
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List
 
 
 class PackageValidator:
@@ -96,9 +93,7 @@ class PackageValidator:
                 with open(pyproject_file, "rb") as f:
                     config = tomli.load(f)
             except ImportError:
-                self.warnings.append(
-                    "Cannot validate pyproject.toml: tomllib/tomli not available"
-                )
+                self.warnings.append("Cannot validate pyproject.toml: tomllib/tomli not available")
                 return
         except Exception as e:
             self.errors.append(f"Invalid pyproject.toml: {e}")
@@ -116,9 +111,7 @@ class PackageValidator:
             required_fields = ["name", "version", "description", "dependencies"]
             for field in required_fields:
                 if field not in project:
-                    self.errors.append(
-                        f"Missing project field in pyproject.toml: {field}"
-                    )
+                    self.errors.append(f"Missing project field in pyproject.toml: {field}")
 
             # Check version format
             if "version" in project:
@@ -196,9 +189,7 @@ class PackageValidator:
         if docs_dir.exists():
             doc_files = list(docs_dir.rglob("*.md"))
             if not doc_files:
-                self.warnings.append(
-                    "docs directory exists but contains no markdown files"
-                )
+                self.warnings.append("docs directory exists but contains no markdown files")
 
     def validate_scripts(self):
         """Validate scripts directory."""
@@ -226,7 +217,7 @@ class PackageValidator:
             import spec_server
             import spec_server.main
             import spec_server.mcp_tools
-            import spec_server.server
+            import spec_server.server  # noqa: F401
 
             print("✅ All main imports successful")
 

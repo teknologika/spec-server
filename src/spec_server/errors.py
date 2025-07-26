@@ -103,10 +103,7 @@ class SpecError(Exception):
             "message": self.message,
             "severity": self.severity.value,
             "details": self.details,
-            "suggestions": [
-                {"action": s.action, "description": s.description, "example": s.example}
-                for s in self.suggestions
-            ],
+            "suggestions": [{"action": s.action, "description": s.description, "example": s.example} for s in self.suggestions],
             "context": self.context,
             "cause": str(self.cause) if self.cause else None,
         }

@@ -16,9 +16,7 @@ def main() -> None:
         print("Usage:")
         print("  spec-server                    # Run with stdio transport (default)")
         print("  spec-server stdio              # Run with stdio transport")
-        print(
-            "  spec-server sse [port]         # Run with SSE transport (default port: 8000)"
-        )
+        print("  spec-server sse [port]         # Run with SSE transport (default port: 8000)")
         print()
         print("Examples:")
         print("  spec-server                    # Default stdio transport")

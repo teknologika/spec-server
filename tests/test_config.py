@@ -10,13 +10,7 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from spec_server.config import (
-    ConfigManager,
-    ServerConfig,
-    create_example_config,
-    get_config,
-    reload_config,
-)
+from spec_server.config import ConfigManager, ServerConfig, create_example_config, get_config, reload_config
 
 
 class TestServerConfig:
@@ -207,9 +201,7 @@ class TestConfigManager:
         manager = ConfigManager()
 
         with patch("builtins.open", mock_open(read_data=json_content)):
-            with patch.object(
-                manager, "_find_config_file", return_value=Path("test.json")
-            ):
+            with patch.object(manager, "_find_config_file", return_value=Path("test.json")):
                 result = manager._load_from_file()
 
         assert result == config_data
@@ -221,9 +213,7 @@ class TestConfigManager:
         manager = ConfigManager()
 
         with patch("builtins.open", mock_open(read_data=invalid_json)):
-            with patch.object(
-                manager, "_find_config_file", return_value=Path("test.json")
-            ):
+            with patch.object(manager, "_find_config_file", return_value=Path("test.json")):
                 result = manager._load_from_file()
 
         assert result == {}  # Should return empty dict on error

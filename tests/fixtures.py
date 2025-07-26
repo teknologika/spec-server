@@ -232,9 +232,7 @@ Standard HTTP status codes with JSON error responses:
     @classmethod
     def get_feature_idea(cls, feature_name: str) -> str:
         """Get a sample feature idea by name."""
-        return cls.FEATURE_IDEAS.get(
-            feature_name, f"Sample feature idea for {feature_name}"
-        )
+        return cls.FEATURE_IDEAS.get(feature_name, f"Sample feature idea for {feature_name}")
 
     @classmethod
     def get_all_feature_names(cls) -> List[str]:
@@ -251,9 +249,7 @@ class SpecTestFixtures:
         self.mcp_tools = MCPTools(base_path=self.base_path)
         self.created_specs: List[str] = []
 
-    def create_sample_spec(
-        self, feature_name: str, phase: str = "requirements"
-    ) -> Dict[str, Any]:
+    def create_sample_spec(self, feature_name: str, phase: str = "requirements") -> Dict[str, Any]:
         """
         Create a sample specification for testing.
 
@@ -289,9 +285,7 @@ class SpecTestFixtures:
                 SpecTestData.SAMPLE_REQUIREMENTS,
                 phase_approval=True,
             )
-            self.mcp_tools.update_spec_document(
-                feature_name, "design", SpecTestData.SAMPLE_DESIGN, phase_approval=True
-            )
+            self.mcp_tools.update_spec_document(feature_name, "design", SpecTestData.SAMPLE_DESIGN, phase_approval=True)
 
         return result
 
@@ -337,9 +331,7 @@ class SpecTestFixtures:
         api_spec_file.write_text(json.dumps(api_spec_content, indent=2))
 
         readme_file = self.base_path / "README.md"
-        readme_file.write_text(
-            "# API Documentation\n\nThis is the main API documentation."
-        )
+        readme_file.write_text("# API Documentation\n\nThis is the main API documentation.")
 
         # Create spec
         result = self.create_sample_spec(feature_name)
@@ -372,9 +364,7 @@ This feature implements an API based on the OpenAPI specification.
 2. WHEN invalid request is made THEN system SHALL return appropriate error
 """
 
-            self.mcp_tools.update_spec_document(
-                feature_name, "requirements", requirements_with_refs
-            )
+            self.mcp_tools.update_spec_document(feature_name, "requirements", requirements_with_refs)
 
         return result
 
@@ -523,9 +513,7 @@ class TestDataGenerator:
         # Generate additional ideas if needed
         additional = []
         for i in range(count - len(ideas)):
-            additional.append(
-                f"Feature {i+1} implementation with comprehensive functionality"
-            )
+            additional.append(f"Feature {i+1} implementation with comprehensive functionality")
 
         return ideas + additional
 

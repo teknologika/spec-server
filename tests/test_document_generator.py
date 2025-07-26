@@ -203,9 +203,7 @@ class TestDocumentGenerator:
         This is not a proper requirements document.
         """
 
-        result = generator.validate_document_format(
-            "requirements", invalid_requirements
-        )
+        result = generator.validate_document_format("requirements", invalid_requirements)
         assert result is False
 
     def test_validate_document_format_design_valid(self):
@@ -306,9 +304,7 @@ class TestDocumentGenerator:
         assert "actions" in concepts
         assert "objects" in concepts
         assert "user" in concepts["actors"]
-        assert any(
-            "create" in action or "manage" in action for action in concepts["actions"]
-        )
+        assert any("create" in action or "manage" in action for action in concepts["actions"])
 
     def test_parse_requirements(self):
         """Test requirements parsing."""
@@ -462,9 +458,7 @@ class TestDocumentGenerationError:
     def test_document_generation_error_with_code_and_details(self):
         """Test DocumentGenerationError with custom code and details."""
         details = {"input": "test", "context": "generation"}
-        error = DocumentGenerationError(
-            "Custom error message", error_code="CUSTOM_ERROR", details=details
-        )
+        error = DocumentGenerationError("Custom error message", error_code="CUSTOM_ERROR", details=details)
 
         assert error.message == "Custom error message"
         assert error.error_code == "CUSTOM_ERROR"

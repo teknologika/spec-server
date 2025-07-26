@@ -13,12 +13,8 @@ from .errors import ErrorCode, ErrorFactory, SpecError
 from .models import Phase, TaskStatus
 from .spec_manager import SpecManager
 from .task_executor import TaskExecutor
-from .validation import (
-    validate_create_spec_params,
-    validate_read_spec_params,
-    validate_task_params,
-    validate_update_spec_params,
-)
+from .task_formatter import BasicTaskFormatter
+from .validation import validate_create_spec_params, validate_read_spec_params, validate_task_params, validate_update_spec_params
 from .workflow_engine import WorkflowEngine, WorkflowError
 
 
@@ -67,6 +63,7 @@ class MCPTools:
         self.document_generator = DocumentGenerator()
         self.workflow_engine = WorkflowEngine(self.spec_manager)
         self.task_executor = TaskExecutor()
+        self.task_formatter = BasicTaskFormatter()
 
     def create_spec(self, feature_name: str, initial_idea: str) -> Dict[str, Any]:
         """
@@ -88,14 +85,10 @@ class MCPTools:
             feature_name = validated_params["feature_name"]
             initial_idea = validated_params["initial_idea"]
             # Create the spec
-            spec = self.spec_manager.create_spec(
-                feature_name.strip(), initial_idea.strip()
-            )
+            spec = self.spec_manager.create_spec(feature_name.strip(), initial_idea.strip())
 
             # Generate initial requirements document
-            requirements_content = self.document_generator.generate_requirements(
-                initial_idea.strip()
-            )
+            requirements_content = self.document_generator.generate_requirements(initial_idea.strip())
 
             # Write requirements to file
             requirements_path = spec.get_requirements_path()
@@ -123,11 +116,7 @@ class MCPTools:
         except SpecError as e:
             raise MCPToolsError(
                 message=e.message,
-                error_code=(
-                    e.error_code.value
-                    if hasattr(e.error_code, "value")
-                    else str(e.error_code)
-                ),
+                error_code=(e.error_code.value if hasattr(e.error_code, "value") else str(e.error_code)),
                 details=e.details,
             )
         except DocumentGenerationError as e:
@@ -166,9 +155,7 @@ class MCPTools:
             MCPToolsError: If update fails
         """
         # Validate and sanitize inputs
-        validated_params = validate_update_spec_params(
-            feature_name, document_type, content, phase_approval
-        )
+        validated_params = validate_update_spec_params(feature_name, document_type, content, phase_approval)
         feature_name = validated_params["feature_name"]
         document_type = validated_params["document_type"]
         content = validated_params["content"]
@@ -197,6 +184,22 @@ class MCPTools:
             else:  # tasks
                 file_path = spec.get_tasks_path()
 
+            # Apply task formatting if this is a tasks document before writing
+            if document_type == "tasks":
+                try:
+                    formatting_result = self.task_formatter.format_task_document(content.strip(), spec)
+                    content = formatting_result.formatted_tasks
+                    # Changes made available in formatting_result.changes_made
+
+                    # Handle content redistribution if any content was moved
+                    if formatting_result.moved_content:
+                        self.task_formatter.redistribute_content(spec, formatting_result.moved_content)
+
+                except Exception:  # nosec B110
+                    # Log formatting error but continue with original content
+                    # Continue with original content on formatting error
+                    pass
+
             file_path.write_text(content.strip(), encoding="utf-8")
 
             # Handle workflow transitions
@@ -205,45 +208,24 @@ class MCPTools:
 
             # Only advance phase if explicit approval is provided by the user
             # This ensures specs are never auto-approved without user confirmation
-            if phase_approval and self.workflow_engine.can_advance_phase(
-                spec, phase_approval
-            ):
+            if phase_approval and self.workflow_engine.can_advance_phase(spec, phase_approval):
                 try:
                     # Pass explicit approval to advance_phase
                     next_phase = self.workflow_engine.advance_phase(spec, approval=True)
                     workflow_message += f" and advanced to {next_phase.value} phase"
 
                     # Generate next phase document if needed
-                    if (
-                        next_phase == Phase.DESIGN
-                        and not spec.get_design_path().exists()
-                    ):
-                        requirements_content = spec.get_requirements_path().read_text(
-                            encoding="utf-8"
-                        )
-                        design_content = self.document_generator.generate_design(
-                            requirements_content
-                        )
-                        spec.get_design_path().write_text(
-                            design_content, encoding="utf-8"
-                        )
+                    if next_phase == Phase.DESIGN and not spec.get_design_path().exists():
+                        requirements_content = spec.get_requirements_path().read_text(encoding="utf-8")
+                        design_content = self.document_generator.generate_design(requirements_content)
+                        spec.get_design_path().write_text(design_content, encoding="utf-8")
                         workflow_message += " and generated initial design document"
 
-                    elif (
-                        next_phase == Phase.TASKS and not spec.get_tasks_path().exists()
-                    ):
-                        requirements_content = spec.get_requirements_path().read_text(
-                            encoding="utf-8"
-                        )
-                        design_content = spec.get_design_path().read_text(
-                            encoding="utf-8"
-                        )
-                        tasks_content = self.document_generator.generate_tasks(
-                            requirements_content, design_content
-                        )
-                        spec.get_tasks_path().write_text(
-                            tasks_content, encoding="utf-8"
-                        )
+                    elif next_phase == Phase.TASKS and not spec.get_tasks_path().exists():
+                        requirements_content = spec.get_requirements_path().read_text(encoding="utf-8")
+                        design_content = spec.get_design_path().read_text(encoding="utf-8")
+                        tasks_content = self.document_generator.generate_tasks(requirements_content, design_content)
+                        spec.get_tasks_path().write_text(tasks_content, encoding="utf-8")
                         workflow_message += " and generated initial tasks document"
 
                 except WorkflowError as e:
@@ -265,12 +247,8 @@ class MCPTools:
                 "current_phase": next_phase.value,
                 "content": content.strip(),
                 "message": workflow_message,
-                "can_advance": (
-                    self.workflow_engine.can_advance_phase(spec, False)
-                    if not phase_approval
-                    else False
-                ),
-                "requires_approval": self.workflow_engine.require_approval(spec),
+                "can_advance": (self.workflow_engine.can_advance_phase(spec, False) if not phase_approval else False),
+                "requires_approval": (self.workflow_engine.require_approval(spec) if not phase_approval else False),
             }
 
         except SpecError as e:
@@ -324,13 +302,9 @@ class MCPTools:
             }
 
         except Exception as e:
-            raise MCPToolsError(
-                f"Failed to list specs: {str(e)}", error_code="LIST_SPECS_ERROR"
-            )
+            raise MCPToolsError(f"Failed to list specs: {str(e)}", error_code="LIST_SPECS_ERROR")
 
-    def read_spec_document(
-        self, feature_name: str, document_type: str, resolve_references: bool = True
-    ) -> Dict[str, Any]:
+    def read_spec_document(self, feature_name: str, document_type: str, resolve_references: bool = True) -> Dict[str, Any]:
         """
         Read a spec document with optional file reference resolution.
 
@@ -346,9 +320,7 @@ class MCPTools:
             MCPToolsError: If reading fails
         """
         # Validate and sanitize inputs
-        validated_params = validate_read_spec_params(
-            feature_name, document_type, resolve_references
-        )
+        validated_params = validate_read_spec_params(feature_name, document_type, resolve_references)
         feature_name = validated_params["feature_name"]
         document_type = validated_params["document_type"]
         resolve_references = validated_params["resolve_references"]
@@ -374,6 +346,26 @@ class MCPTools:
             # Read the content
             content = file_path.read_text(encoding="utf-8")
 
+            # Apply task formatting if this is a tasks document
+            formatting_changes = []
+            if document_type == "tasks":
+                try:
+                    formatting_result = self.task_formatter.format_task_document(content, spec)
+                    content = formatting_result.formatted_tasks
+                    formatting_changes = formatting_result.changes_made
+
+                    # Save the formatted content back to file if changes were made
+                    if formatting_changes:
+                        file_path.write_text(content, encoding="utf-8")
+
+                        # Handle content redistribution if any content was moved
+                        if formatting_result.moved_content:
+                            self.task_formatter.redistribute_content(spec, formatting_result.moved_content)
+
+                except Exception as e:
+                    # Log formatting error but don't fail the read operation
+                    formatting_changes = [f"Task formatting failed: {str(e)}"]
+
             # Resolve file references if requested
             if resolve_references:
                 from .models import FileReferenceResolver
@@ -391,6 +383,11 @@ class MCPTools:
             # Get file metadata
             stat = file_path.stat()
 
+            # Build response message
+            message = f"Successfully read {document_type} document"
+            if formatting_changes:
+                message += f" (applied formatting: {', '.join(formatting_changes)})"
+
             return {
                 "success": True,
                 "feature_name": feature_name,
@@ -400,7 +397,8 @@ class MCPTools:
                 "last_modified": stat.st_mtime,
                 "resolve_references": resolve_references,
                 "reference_errors": reference_errors,
-                "message": f"Successfully read {document_type} document",
+                "formatting_changes": formatting_changes,
+                "message": message,
             }
 
         except SpecError as e:
@@ -412,9 +410,7 @@ class MCPTools:
                 details={"feature_name": feature_name, "document_type": document_type},
             )
 
-    def execute_task(
-        self, feature_name: str, task_identifier: Optional[str] = None
-    ) -> Dict[str, Any]:
+    def execute_task(self, feature_name: str, task_identifier: Optional[str] = None) -> Dict[str, Any]:
         """
         Execute a specific implementation task or get the next task.
 
@@ -461,7 +457,7 @@ class MCPTools:
 
         # Get the target task
         if task_identifier:
-            task = self.task_executor.get_task_by_identifier(tasks, task_identifier)
+            task = self.task_executor.get_task_by_identifier(spec, task_identifier)
             if not task:
                 raise MCPToolsError(
                     f"Task '{task_identifier}' not found in spec '{feature_name}'",
@@ -482,33 +478,38 @@ class MCPTools:
                 )
 
         try:
+            # Get task object for dependency checking
+            task_obj = self.task_executor.get_task_object_by_identifier(spec, task["identifier"])
+            if not task_obj:
+                raise MCPToolsError(
+                    f"Task '{task_identifier}' not found in spec '{feature_name}'",
+                    error_code="TASK_NOT_FOUND",
+                    details={
+                        "feature_name": feature_name,
+                        "task_identifier": task_identifier,
+                    },
+                )
+
             # Check if task can be executed
-            if not self.task_executor.can_execute_task(task, tasks):
-                dependencies = self.task_executor.get_task_dependencies(task, tasks)
-                incomplete_deps = [
-                    dep.identifier
-                    for dep in dependencies
-                    if dep.status != TaskStatus.COMPLETED.value
-                ]
+            if not self.task_executor.can_execute_task(task_obj, tasks):
+                dependencies = self.task_executor.get_task_dependencies(task_obj, tasks)
+                incomplete_deps = [dep.identifier for dep in dependencies if dep.status != TaskStatus.COMPLETED.value]
 
                 raise MCPToolsError(
-                    f"Task '{task.identifier}' cannot be executed. Dependencies not complete: {incomplete_deps}",
+                    f"Task '{task['identifier']}' cannot be executed. Dependencies not complete: {incomplete_deps}",
                     error_code="TASK_DEPENDENCIES_NOT_COMPLETE",
                     details={
                         "feature_name": feature_name,
-                        "task_identifier": task.identifier,
+                        "task_identifier": task["identifier"],
                         "incomplete_dependencies": incomplete_deps,
                     },
                 )
 
             # Create execution context
-            context = self.task_executor.execute_task_context(spec, task)
+            context = self.task_executor.execute_task_context(spec, task_obj)
 
             # Update task status to in progress
-            updated_tasks_content = self.task_executor.update_task_status(
-                tasks_content, task.identifier, TaskStatus.IN_PROGRESS
-            )
-            tasks_path.write_text(updated_tasks_content, encoding="utf-8")
+            self.task_executor.update_task_status(spec, task["identifier"], TaskStatus.IN_PROGRESS)
 
             # Get task progress
             completed, total = self.task_executor.get_task_progress(tasks)
@@ -517,12 +518,12 @@ class MCPTools:
                 "success": True,
                 "feature_name": feature_name,
                 "task": {
-                    "identifier": task.identifier,
-                    "description": task.description,
+                    "identifier": task["identifier"],
+                    "description": task["description"],
                     "status": TaskStatus.IN_PROGRESS.value,
-                    "requirements_refs": task.requirements_refs,
-                    "parent_task": task.parent_task,
-                    "sub_tasks": task.sub_tasks,
+                    "requirements_refs": task["requirements_refs"],
+                    "parent_task": task["parent_task"],
+                    "sub_tasks": task["sub_tasks"],
                 },
                 "execution_context": {
                     "has_requirements": context.requirements_content is not None,
@@ -535,21 +536,15 @@ class MCPTools:
                 "progress": {
                     "completed": completed,
                     "total": total,
-                    "percentage": (
-                        round((completed / total) * 100, 1) if total > 0 else 0
-                    ),
+                    "percentage": (round((completed / total) * 100, 1) if total > 0 else 0),
                 },
-                "message": f"Started execution of task '{task.identifier}': {task.description}",
+                "message": f"Started execution of task '{task['identifier']}': {task['description']}",
             }
 
         except SpecError as e:
             raise MCPToolsError(
                 message=e.message,
-                error_code=(
-                    e.error_code.value
-                    if hasattr(e.error_code, "value")
-                    else str(e.error_code)
-                ),
+                error_code=(e.error_code.value if hasattr(e.error_code, "value") else str(e.error_code)),
                 details=e.details,
             )
         except Exception as e:
@@ -583,9 +578,7 @@ class MCPTools:
 
         # task_identifier is required for completion
         if task_identifier is None:
-            raise ErrorFactory.validation_error(
-                "task_identifier", None, "Task identifier is required for completion"
-            )
+            raise ErrorFactory.validation_error("task_identifier", None, "Task identifier is required for completion")
 
         try:
             # Get the spec
@@ -604,9 +597,9 @@ class MCPTools:
 
         # Parse tasks and find the target task
         tasks_content = tasks_path.read_text(encoding="utf-8")
-        tasks = self.task_executor.parse_tasks(tasks_content)
+        _ = self.task_executor.parse_tasks(tasks_content)  # Validate tasks format
 
-        task = self.task_executor.get_task_by_identifier(tasks, task_identifier)
+        task = self.task_executor.get_task_by_identifier(spec, task_identifier)
         if not task:
             raise MCPToolsError(
                 f"Task '{task_identifier}' not found in spec '{feature_name}'",
@@ -619,12 +612,10 @@ class MCPTools:
 
         try:
             # Update task status to completed
-            updated_tasks_content = self.task_executor.update_task_status(
-                tasks_content, task_identifier, TaskStatus.COMPLETED
-            )
-            tasks_path.write_text(updated_tasks_content, encoding="utf-8")
+            self.task_executor.update_task_status(spec, task_identifier, TaskStatus.COMPLETED)
 
-            # Get updated progress
+            # Re-read and parse updated tasks for progress calculation
+            updated_tasks_content = tasks_path.read_text(encoding="utf-8")
             updated_tasks = self.task_executor.parse_tasks(updated_tasks_content)
             completed, total = self.task_executor.get_task_progress(updated_tasks)
 
@@ -636,15 +627,13 @@ class MCPTools:
                 "feature_name": feature_name,
                 "completed_task": {
                     "identifier": task_identifier,
-                    "description": task.description,
+                    "description": task["description"],
                     "status": TaskStatus.COMPLETED.value,
                 },
                 "progress": {
                     "completed": completed,
                     "total": total,
-                    "percentage": (
-                        round((completed / total) * 100, 1) if total > 0 else 0
-                    ),
+                    "percentage": (round((completed / total) * 100, 1) if total > 0 else 0),
                 },
                 "next_task": (
                     {
@@ -654,17 +643,13 @@ class MCPTools:
                     if next_task
                     else None
                 ),
-                "message": f"Completed task '{task_identifier}': {task.description}",
+                "message": f"Completed task '{task_identifier}': {task['description']}",
             }
 
         except SpecError as e:
             raise MCPToolsError(
                 message=e.message,
-                error_code=(
-                    e.error_code.value
-                    if hasattr(e.error_code, "value")
-                    else str(e.error_code)
-                ),
+                error_code=(e.error_code.value if hasattr(e.error_code, "value") else str(e.error_code)),
                 details=e.details,
             )
         except Exception as e:
@@ -695,9 +680,7 @@ class MCPTools:
 
         name_result = InputValidator.validate_feature_name(feature_name)
         if not name_result.is_valid:
-            raise ErrorFactory.invalid_spec_name(
-                feature_name, "; ".join(name_result.errors)
-            )
+            raise ErrorFactory.invalid_spec_name(feature_name, "; ".join(name_result.errors))
 
         feature_name = name_result.sanitized_value
 
@@ -740,11 +723,7 @@ class MCPTools:
         except SpecError as e:
             raise MCPToolsError(
                 message=e.message,
-                error_code=(
-                    e.error_code.value
-                    if hasattr(e.error_code, "value")
-                    else str(e.error_code)
-                ),
+                error_code=(e.error_code.value if hasattr(e.error_code, "value") else str(e.error_code)),
                 details=e.details,
             )
         except Exception as e:

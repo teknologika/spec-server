@@ -4,14 +4,7 @@ Tests for the structured error handling system.
 
 # No imports needed
 
-from spec_server.errors import (
-    ErrorCode,
-    ErrorFactory,
-    ErrorSeverity,
-    ErrorSuggestion,
-    SpecError,
-    format_error_response,
-)
+from spec_server.errors import ErrorCode, ErrorFactory, ErrorSeverity, ErrorSuggestion, SpecError, format_error_response
 
 
 class TestErrorSuggestion:
@@ -31,9 +24,7 @@ class TestErrorSuggestion:
 
     def test_suggestion_without_example(self):
         """Test creating a suggestion without example."""
-        suggestion = ErrorSuggestion(
-            action="test_action", description="Test description"
-        )
+        suggestion = ErrorSuggestion(action="test_action", description="Test description")
 
         assert suggestion.action == "test_action"
         assert suggestion.description == "Test description"
@@ -57,9 +48,7 @@ class TestSpecError:
 
     def test_create_detailed_error(self):
         """Test creating a detailed SpecError."""
-        suggestion = ErrorSuggestion(
-            action="fix_issue", description="Fix the issue", example="fix_issue()"
-        )
+        suggestion = ErrorSuggestion(action="fix_issue", description="Fix the issue", example="fix_issue()")
 
         cause = ValueError("Original error")
 
@@ -143,9 +132,7 @@ class TestErrorFactory:
 
     def test_invalid_spec_name(self):
         """Test creating invalid spec name error."""
-        error = ErrorFactory.invalid_spec_name(
-            "Invalid Name!", "contains special characters"
-        )
+        error = ErrorFactory.invalid_spec_name("Invalid Name!", "contains special characters")
 
         assert error.error_code == ErrorCode.SPEC_INVALID_NAME
         assert "Invalid Name!" in error.message
@@ -191,9 +178,7 @@ class TestErrorFactory:
 
     def test_validation_error(self):
         """Test creating validation error."""
-        error = ErrorFactory.validation_error(
-            "test_field", "invalid_value", "must be positive"
-        )
+        error = ErrorFactory.validation_error("test_field", "invalid_value", "must be positive")
 
         assert error.error_code == ErrorCode.VALIDATION_ERROR
         assert "test_field" in error.message

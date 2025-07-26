@@ -22,42 +22,26 @@ class ServerConfig(BaseModel):
     # Server settings
     host: str = Field(default="127.0.0.1", description="Host to bind to")
     port: int = Field(default=8000, description="Port to listen on")
-    transport: str = Field(
-        default="stdio", description="Transport protocol (stdio or sse)"
-    )
+    transport: str = Field(default="stdio", description="Transport protocol (stdio or sse)")
 
     # Spec storage settings
-    specs_dir: str = Field(
-        default="specs", description="Directory for storing specifications"
-    )
-    auto_detect_workspace: bool = Field(
-        default=True, description="Auto-detect workspace root in IDE environments"
-    )
-    workspace_specs_dir: str = Field(
-        default=".specs", description="Specs directory name within workspace root"
-    )
+    specs_dir: str = Field(default="specs", description="Directory for storing specifications")
+    auto_detect_workspace: bool = Field(default=True, description="Auto-detect workspace root in IDE environments")
+    workspace_specs_dir: str = Field(default=".specs", description="Specs directory name within workspace root")
     max_specs: int = Field(default=1000, description="Maximum number of specifications")
 
     # Document settings
-    max_document_size: int = Field(
-        default=1_000_000, description="Maximum document size in bytes"
-    )
+    max_document_size: int = Field(default=1_000_000, description="Maximum document size in bytes")
     auto_backup: bool = Field(default=True, description="Enable automatic backups")
     backup_dir: str = Field(default="backups", description="Directory for backups")
 
     # Validation settings
-    strict_validation: bool = Field(
-        default=True, description="Enable strict input validation"
-    )
-    allow_dangerous_paths: bool = Field(
-        default=False, description="Allow potentially dangerous file paths"
-    )
+    strict_validation: bool = Field(default=True, description="Enable strict input validation")
+    allow_dangerous_paths: bool = Field(default=False, description="Allow potentially dangerous file paths")
 
     # Logging settings
     log_level: str = Field(default="INFO", description="Logging level")
-    log_file: Optional[str] = Field(
-        default=None, description="Log file path (None for console only)"
-    )
+    log_file: Optional[str] = Field(default=None, description="Log file path (None for console only)")
 
     # Performance settings
     cache_enabled: bool = Field(default=True, description="Enable caching")
@@ -274,9 +258,7 @@ class ConfigManager:
 
         return bool(value)
 
-    def save_config(
-        self, config: ServerConfig, file_path: Optional[Union[str, Path]] = None
-    ) -> None:
+    def save_config(self, config: ServerConfig, file_path: Optional[Union[str, Path]] = None) -> None:
         """
         Save configuration to JSON file.
 
@@ -416,9 +398,7 @@ def detect_workspace_root() -> Optional[Path]:
         for indicator in workspace_indicators:
             indicator_path = search_dir / indicator
             if indicator_path.exists():
-                logger.debug(
-                    f"Detected workspace root at {search_dir} (found {indicator})"
-                )
+                logger.debug(f"Detected workspace root at {search_dir} (found {indicator})")
                 return search_dir
 
         # Move up one directory

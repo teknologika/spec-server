@@ -255,10 +255,7 @@ class TestGuidanceToolsIntegration:
                 assert isinstance(result, dict)
                 assert result["success"] is False
                 assert result["error_code"] == "FILE_ACCESS_DENIED"
-                assert (
-                    "Permission denied reading LLM guidance document:"
-                    in result["message"]
-                )
+                assert "Permission denied reading LLM guidance document:" in result["message"]
                 assert result["details"]["error_type"] == "PermissionError"
             finally:
                 # Restore permissions for cleanup
@@ -328,6 +325,4 @@ class TestGuidanceToolsIntegration:
                 assert "details" in result
 
                 # Verify it doesn't claim success when there's an error
-                assert (
-                    "Retrieved complete LLM guidance document" not in result["message"]
-                )
+                assert "Retrieved complete LLM guidance document" not in result["message"]

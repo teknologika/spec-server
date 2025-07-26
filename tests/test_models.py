@@ -48,9 +48,7 @@ class TestSpec:
 
     def test_spec_creation_minimal(self):
         """Test creating a Spec with minimal required fields."""
-        spec = Spec(
-            feature_name="test-feature", base_path=Path("/tmp/specs/test-feature")
-        )
+        spec = Spec(feature_name="test-feature", base_path=Path("/tmp/specs/test-feature"))
 
         assert spec.feature_name == "test-feature"
         assert spec.current_phase == Phase.REQUIREMENTS
@@ -81,17 +79,13 @@ class TestSpec:
         """Test Spec path helper methods."""
         spec = Spec(feature_name="path-test", base_path=Path("/tmp/specs/path-test"))
 
-        assert spec.get_requirements_path() == Path(
-            "/tmp/specs/path-test/requirements.md"
-        )
+        assert spec.get_requirements_path() == Path("/tmp/specs/path-test/requirements.md")
         assert spec.get_design_path() == Path("/tmp/specs/path-test/design.md")
         assert spec.get_tasks_path() == Path("/tmp/specs/path-test/tasks.md")
 
     def test_spec_update_timestamp(self):
         """Test updating timestamp."""
-        spec = Spec(
-            feature_name="timestamp-test", base_path=Path("/tmp/specs/timestamp-test")
-        )
+        spec = Spec(feature_name="timestamp-test", base_path=Path("/tmp/specs/timestamp-test"))
 
         original_time = spec.updated_at
         spec.update_timestamp()
@@ -117,9 +111,7 @@ class TestSpec:
         with pytest.raises(ValidationError) as exc_info:
             Spec(feature_name="test@feature", base_path=Path("/tmp/specs/test"))
 
-        assert "alphanumeric characters, hyphens, and underscores" in str(
-            exc_info.value
-        )
+        assert "alphanumeric characters, hyphens, and underscores" in str(exc_info.value)
 
     def test_spec_feature_name_validation_valid(self):
         """Test feature name validation with valid names."""
@@ -252,9 +244,7 @@ class TestDocumentTemplate:
         valid_types = ["requirements", "design", "tasks"]
 
         for template_type in valid_types:
-            template = DocumentTemplate(
-                template_type=template_type, sections=["Section 1"]
-            )
+            template = DocumentTemplate(template_type=template_type, sections=["Section 1"])
             assert template.template_type == template_type
 
     def test_document_template_validation_invalid(self):
@@ -319,9 +309,7 @@ class TestFileReference:
 
     def test_file_reference_defaults(self):
         """Test FileReference with default values."""
-        file_ref = FileReference(
-            reference_text="#[[file:test.md]]", file_path=Path("test.md")
-        )
+        file_ref = FileReference(reference_text="#[[file:test.md]]", file_path=Path("test.md"))
 
         assert file_ref.resolved_content is None
         assert file_ref.exists is False
@@ -362,9 +350,7 @@ class TestFileReference:
         ]
 
         for valid_format in valid_formats:
-            file_ref = FileReference(
-                reference_text=valid_format, file_path=Path("dummy.md")
-            )
+            file_ref = FileReference(reference_text=valid_format, file_path=Path("dummy.md"))
             assert file_ref.reference_text == valid_format
 
     def test_file_reference_from_reference_text(self):
@@ -470,9 +456,7 @@ class TestFileReferenceResolver:
         test_file.write_text(test_content)
 
         resolver = FileReferenceResolver(temp_specs_dir)
-        file_ref = FileReference(
-            reference_text="#[[file:test.md]]", file_path=test_file
-        )
+        file_ref = FileReference(reference_text="#[[file:test.md]]", file_path=test_file)
 
         resolved_ref = resolver.resolve_reference(file_ref)
 
@@ -501,9 +485,7 @@ class TestFileReferenceResolver:
         test_file.write_text("content")
 
         resolver = FileReferenceResolver(temp_specs_dir)
-        file_ref = FileReference(
-            reference_text="#[[file:unreadable.md]]", file_path=test_file
-        )
+        file_ref = FileReference(reference_text="#[[file:unreadable.md]]", file_path=test_file)
 
         # Try to make file unreadable (may not work on all systems)
         try:

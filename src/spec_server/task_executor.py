@@ -10,6 +10,7 @@ import re
 from typing import Dict, List, Optional, Tuple
 
 from .models import Spec, Task, TaskStatus
+from .task_parser import TaskParser
 
 
 class TaskExecutionContext:
@@ -63,19 +64,17 @@ class TaskExecutor:
     """
 
     # Regex patterns for parsing markdown checkbox tasks
-    TASK_PATTERN = re.compile(
-        r"^(\s*)-\s*\[([x\s-])\]\s*(\d+(?:\.\d+)*\.?)\s+(.+)$", re.MULTILINE
-    )
+    TASK_PATTERN = re.compile(r"^(\s*)-\s*\[([x\s-])\]\s*(\d+(?:\.\d+)*\.?)\s+(.+)$", re.MULTILINE)
     REQUIREMENTS_REF_PATTERN = re.compile(r"_Requirements:\s*([^_]+)_")
     SUB_BULLET_PATTERN = re.compile(r"^(\s+)-\s+(.+)$", re.MULTILINE)
 
     def __init__(self) -> None:
         """Initialize the TaskExecutor."""
-        pass
+        self.task_parser = TaskParser()
 
     def parse_tasks(self, tasks_content: str) -> List[Task]:
         """
-        Parse tasks from tasks.md content.
+        Parse tasks from tasks.md content using the standardized TaskParser.
 
         Args:
             tasks_content: Content of the tasks.md file
@@ -83,52 +82,33 @@ class TaskExecutor:
         Returns:
             List of parsed Task objects with hierarchy relationships
         """
+        # Use the standardized TaskParser to parse TaskItem objects
+        task_items = self.task_parser.parse_tasks(tasks_content)
+
+        # Convert TaskItem objects to Task objects for backward compatibility
         tasks = []
-        task_hierarchy = {}  # Maps task identifier to Task object
-
-        # Find all task matches
-        matches = list(self.TASK_PATTERN.finditer(tasks_content))
-
-        for match in matches:
-            # indent = match.group(1)  # Indentation (not used currently)
-            status_char = match.group(2)  # x, space, or -
-            identifier = match.group(3)  # Task number like "1.2"
-            description = match.group(4).strip()  # Task description
-
-            # Determine task status from checkbox
-            if status_char == "x":
-                status = TaskStatus.COMPLETED
-            elif status_char == "-":
-                status = TaskStatus.IN_PROGRESS
+        for task_item in task_items:
+            # Convert string status to enum - handle both string and enum values
+            if isinstance(task_item.status, str):
+                # Map string values to enum
+                status_mapping = {
+                    "not_started": TaskStatus.NOT_STARTED,
+                    "in_progress": TaskStatus.IN_PROGRESS,
+                    "completed": TaskStatus.COMPLETED,
+                }
+                status = status_mapping.get(task_item.status, TaskStatus.NOT_STARTED)
             else:
-                status = TaskStatus.NOT_STARTED
+                status = task_item.status
 
-            # Extract requirements references
-            requirements_refs = self._extract_requirements_refs(
-                tasks_content, match.end()
-            )
-
-            # Determine parent task based on identifier
-            parent_task = self._determine_parent_task(identifier)
-
-            # Clean up identifier (remove trailing dot)
-            clean_identifier = identifier.rstrip(".")
-
-            # Create task object
             task = Task(
-                identifier=clean_identifier,
-                description=description,
-                requirements_refs=requirements_refs,
+                identifier=task_item.identifier,
+                description=task_item.description,
+                requirements_refs=task_item.requirements_refs,
                 status=status,
-                parent_task=parent_task,
-                sub_tasks=[],  # Will be populated later
+                parent_task=task_item.parent_task,
+                sub_tasks=task_item.sub_tasks[:],  # Copy the list
             )
-
             tasks.append(task)
-            task_hierarchy[clean_identifier] = task
-
-        # Build parent-child relationships
-        self._build_task_hierarchy(tasks, task_hierarchy)
 
         return tasks
 
@@ -175,9 +155,7 @@ class TaskExecutor:
         # Parent is the identifier with the last part removed
         return ".".join(parts[:-1])
 
-    def _build_task_hierarchy(
-        self, tasks: List[Task], task_hierarchy: Dict[str, Task]
-    ) -> None:
+    def _build_task_hierarchy(self, tasks: List[Task], task_hierarchy: Dict[str, Task]) -> None:
         """
         Build parent-child relationships between tasks.
 
@@ -222,53 +200,61 @@ class TaskExecutor:
 
         return None
 
-    def update_task_status(
-        self, tasks_content: str, task_identifier: str, status: TaskStatus
-    ) -> str:
+    def update_task_status(self, spec: Spec, task_identifier: str, status: TaskStatus) -> Dict[str, str]:
         """
-        Update task status in the tasks.md content.
+        Update task status in the tasks.md content using the standardized format.
 
         Args:
-            tasks_content: Current content of tasks.md
+            spec: The specification containing the task
             task_identifier: Identifier of task to update
             status: New status for the task
 
         Returns:
-            Updated tasks.md content
+            Dictionary with updated task information
 
         Raises:
             ValueError: If task identifier is not found
         """
-        # Map status to checkbox character
-        status_chars = {
-            TaskStatus.NOT_STARTED: " ",
-            TaskStatus.IN_PROGRESS: "-",
-            TaskStatus.COMPLETED: "x",
-        }
+        # Read current tasks content
+        tasks_path = spec.get_tasks_path()
+        if not tasks_path.exists():
+            raise ValueError("Tasks file does not exist")
 
-        status_char = status_chars[status]
+        tasks_content = tasks_path.read_text(encoding="utf-8")
 
-        # Find the task line and update it
-        lines = tasks_content.split("\n")
-        updated = False
+        # Parse tasks using the standardized parser
+        task_items = self.task_parser.parse_tasks(tasks_content)
 
-        for i, line in enumerate(lines):
-            # Check if this line contains our task
-            match = self.TASK_PATTERN.match(line)
-            if match and match.group(3).rstrip(".") == task_identifier:
-                # Replace the status character
-                indent = match.group(1)
-                identifier = match.group(3)
-                description = match.group(4)
-
-                lines[i] = f"{indent}- [{status_char}] {identifier} {description}"
-                updated = True
+        # Find and update the target task
+        target_task = None
+        for task_item in task_items:
+            if task_item.identifier == task_identifier:
+                target_task = task_item
+                # Update the status (convert enum to string)
+                task_item.status = status.value
                 break
 
-        if not updated:
+        if not target_task:
             raise ValueError(f"Task identifier '{task_identifier}' not found")
 
-        return "\n".join(lines)
+        # Re-render the tasks using the TaskRenderer
+        from .task_renderer import TaskRenderer
+
+        renderer = TaskRenderer()
+        updated_content = renderer.render_tasks(task_items)
+
+        # Write back to file
+        tasks_path.write_text(updated_content, encoding="utf-8")
+
+        # Return task information
+        return {
+            "identifier": target_task.identifier,
+            "description": target_task.description,
+            "status": status.value,
+            "requirements_refs": target_task.requirements_refs,
+            "parent_task": target_task.parent_task,
+            "sub_tasks": target_task.sub_tasks,
+        }
 
     def execute_task_context(self, spec: Spec, task: Task) -> TaskExecutionContext:
         """
@@ -288,9 +274,7 @@ class TaskExecutor:
 
         try:
             if spec.get_requirements_path().exists():
-                requirements_content = spec.get_requirements_path().read_text(
-                    encoding="utf-8"
-                )
+                requirements_content = spec.get_requirements_path().read_text(encoding="utf-8")
         except IOError:
             pass
 
@@ -314,11 +298,72 @@ class TaskExecutor:
             tasks_content=tasks_content,
         )
 
-    def get_task_by_identifier(
-        self, tasks: List[Task], identifier: str
-    ) -> Optional[Task]:
+    def get_task_by_identifier(self, spec: Spec, identifier: str) -> Optional[Dict[str, str]]:
         """
-        Find a task by its identifier.
+        Find a task by its identifier using the standardized format.
+
+        Args:
+            spec: The specification containing the tasks
+            identifier: Task identifier to find
+
+        Returns:
+            Dictionary with task information or None if not found
+        """
+        # Read current tasks content
+        tasks_path = spec.get_tasks_path()
+        if not tasks_path.exists():
+            return None
+
+        tasks_content = tasks_path.read_text(encoding="utf-8")
+
+        # Parse tasks using the standardized parser
+        task_items = self.task_parser.parse_tasks(tasks_content)
+
+        # Find the target task
+        for task_item in task_items:
+            if task_item.identifier == identifier:
+                return {
+                    "identifier": task_item.identifier,
+                    "description": task_item.description,
+                    "status": task_item.status,
+                    "requirements_refs": task_item.requirements_refs,
+                    "parent_task": task_item.parent_task,
+                    "sub_tasks": task_item.sub_tasks,
+                }
+
+        return None
+
+    def get_task_object_by_identifier(self, spec: Spec, identifier: str) -> Optional[Task]:
+        """
+        Find a task by its identifier and return as Task object for backward compatibility.
+
+        Args:
+            spec: The specification containing the tasks
+            identifier: Task identifier to find
+
+        Returns:
+            Task object or None if not found
+        """
+        # Read current tasks content
+        tasks_path = spec.get_tasks_path()
+        if not tasks_path.exists():
+            return None
+
+        tasks_content = tasks_path.read_text(encoding="utf-8")
+
+        # Parse tasks using the standardized parser and convert to Task objects
+        tasks = self.parse_tasks(tasks_content)
+
+        # Find the target task
+        for task in tasks:
+            if task.identifier == identifier:
+                return task
+
+        return None
+
+    def get_task_by_identifier_from_list(self, tasks: List[Task], identifier: str) -> Optional[Task]:
+        """
+        Find a task by its identifier from a list (backward compatibility).
 
         Args:
             tasks: List of tasks to search
@@ -342,9 +387,7 @@ class TaskExecutor:
         Returns:
             Tuple of (completed_count, total_count)
         """
-        completed = sum(
-            1 for task in tasks if task.status == TaskStatus.COMPLETED.value
-        )
+        completed = sum(1 for task in tasks if task.status == TaskStatus.COMPLETED.value)
         total = len(tasks)
         return completed, total
 
@@ -364,16 +407,12 @@ class TaskExecutor:
         for task in tasks:
             # Check if parent task exists
             if task.parent_task and task.parent_task not in task_ids:
-                errors.append(
-                    f"Task {task.identifier} references non-existent parent {task.parent_task}"
-                )
+                errors.append(f"Task {task.identifier} references non-existent parent {task.parent_task}")
 
             # Check if sub-tasks exist
             for sub_task_id in task.sub_tasks:
                 if sub_task_id not in task_ids:
-                    errors.append(
-                        f"Task {task.identifier} references non-existent sub-task {sub_task_id}"
-                    )
+                    errors.append(f"Task {task.identifier} references non-existent sub-task {sub_task_id}")
 
         return errors
 
@@ -392,7 +431,7 @@ class TaskExecutor:
 
         # If this task has sub-tasks, they are dependencies
         for sub_task_id in task.sub_tasks:
-            sub_task = self.get_task_by_identifier(all_tasks, sub_task_id)
+            sub_task = self.get_task_by_identifier_from_list(all_tasks, sub_task_id)
             if sub_task:
                 dependencies.append(sub_task)
 

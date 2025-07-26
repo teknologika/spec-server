@@ -32,9 +32,7 @@ def create_temp_spec_dir() -> Tuple[Path, Path]:
     return temp_dir, specs_dir
 
 
-def create_test_spec(
-    spec_manager: SpecManager, feature_name: Optional[str] = None
-) -> Spec:
+def create_test_spec(spec_manager: SpecManager, feature_name: Optional[str] = None) -> Spec:
     """Create a test specification."""
     if feature_name is None:
         feature_name = random_feature_name()
@@ -46,9 +44,7 @@ def create_test_spec(
     return spec
 
 
-def create_full_test_spec(
-    spec_manager: SpecManager, feature_name: Optional[str] = None
-) -> Spec:
+def create_full_test_spec(spec_manager: SpecManager, feature_name: Optional[str] = None) -> Spec:
     """Create a complete test specification with all documents."""
     if feature_name is None:
         feature_name = random_feature_name()
@@ -270,9 +266,7 @@ def create_test_config_file(temp_dir: Path, config_data: Dict[str, Any]) -> Path
     return config_file
 
 
-def assert_error_response(
-    response: Dict[str, Any], expected_error_code: Optional[str] = None
-):
+def assert_error_response(response: Dict[str, Any], expected_error_code: Optional[str] = None):
     """Assert that a response is a proper error response."""
     assert response["success"] is False
     assert "error_code" in response
@@ -284,9 +278,7 @@ def assert_error_response(
         assert response["error_code"] == expected_error_code
 
 
-def assert_success_response(
-    response: Dict[str, Any], expected_keys: Optional[List[str]] = None
-):
+def assert_success_response(response: Dict[str, Any], expected_keys: Optional[List[str]] = None):
     """Assert that a response is a successful response."""
     assert response["success"] is True
 
@@ -322,16 +314,12 @@ def count_tasks_by_status(tasks: List[Task], status: TaskStatus) -> int:
     return sum(1 for task in tasks if task.status == status)
 
 
-def create_test_json_rpc_request(
-    method: str, params: Dict[str, Any], request_id: int = 1
-) -> Dict[str, Any]:
+def create_test_json_rpc_request(method: str, params: Dict[str, Any], request_id: int = 1) -> Dict[str, Any]:
     """Create a test JSON-RPC request."""
     return {"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}
 
 
-def assert_json_rpc_response(
-    response: Dict[str, Any], request_id: int = 1, expect_error: bool = False
-):
+def assert_json_rpc_response(response: Dict[str, Any], request_id: int = 1, expect_error: bool = False):
     """Assert that a response is a valid JSON-RPC response."""
     assert "jsonrpc" in response
     assert response["jsonrpc"] == "2.0"

@@ -447,9 +447,7 @@ class TestSpecError:
     def test_spec_error_with_code_and_details(self):
         """Test SpecError with custom code and details."""
         details = {"feature_name": "test", "path": "/tmp/test"}
-        error = SpecError(
-            "Custom error message", error_code="CUSTOM_ERROR", details=details
-        )
+        error = SpecError("Custom error message", error_code="CUSTOM_ERROR", details=details)
 
         assert error.message == "Custom error message"
         assert error.error_code == "CUSTOM_ERROR"

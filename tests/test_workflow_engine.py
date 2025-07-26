@@ -174,9 +174,7 @@ class TestWorkflowEngine:
         engine = WorkflowEngine(spec_manager)
 
         # Valid forward transitions
-        assert (
-            engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.DESIGN) is True
-        )
+        assert engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.DESIGN) is True
         assert engine.validate_phase_transition(Phase.DESIGN, Phase.TASKS) is True
         assert engine.validate_phase_transition(Phase.TASKS, Phase.COMPLETE) is True
 
@@ -186,9 +184,7 @@ class TestWorkflowEngine:
         engine = WorkflowEngine(spec_manager)
 
         # Valid backward transitions
-        assert (
-            engine.validate_phase_transition(Phase.DESIGN, Phase.REQUIREMENTS) is True
-        )
+        assert engine.validate_phase_transition(Phase.DESIGN, Phase.REQUIREMENTS) is True
         assert engine.validate_phase_transition(Phase.TASKS, Phase.DESIGN) is True
         assert engine.validate_phase_transition(Phase.TASKS, Phase.REQUIREMENTS) is True
         assert engine.validate_phase_transition(Phase.COMPLETE, Phase.TASKS) is True
@@ -199,10 +195,7 @@ class TestWorkflowEngine:
         engine = WorkflowEngine(spec_manager)
 
         # Same phase transitions
-        assert (
-            engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.REQUIREMENTS)
-            is True
-        )
+        assert engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.REQUIREMENTS) is True
         assert engine.validate_phase_transition(Phase.DESIGN, Phase.DESIGN) is True
         assert engine.validate_phase_transition(Phase.TASKS, Phase.TASKS) is True
         assert engine.validate_phase_transition(Phase.COMPLETE, Phase.COMPLETE) is True
@@ -213,13 +206,8 @@ class TestWorkflowEngine:
         engine = WorkflowEngine(spec_manager)
 
         # Invalid forward skips
-        assert (
-            engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.TASKS) is False
-        )
-        assert (
-            engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.COMPLETE)
-            is False
-        )
+        assert engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.TASKS) is False
+        assert engine.validate_phase_transition(Phase.REQUIREMENTS, Phase.COMPLETE) is False
         assert engine.validate_phase_transition(Phase.DESIGN, Phase.COMPLETE) is False
 
     def test_require_approval_new_spec(self, temp_specs_dir):
@@ -308,9 +296,7 @@ class TestWorkflowEngine:
         assert history[0]["phase"] == "requirements"
 
         # Should include approval events
-        approval_events = [
-            event for event in history if event["event"] == "phase_approved"
-        ]
+        approval_events = [event for event in history if event["event"] == "phase_approved"]
         assert len(approval_events) >= 1
 
     def test_validate_phase_requirements(self, temp_specs_dir):
@@ -446,9 +432,7 @@ class TestWorkflowError:
     def test_workflow_error_with_code_and_details(self):
         """Test WorkflowError with custom code and details."""
         details = {"feature_name": "test", "phase": "requirements"}
-        error = WorkflowError(
-            "Custom error message", error_code="CUSTOM_ERROR", details=details
-        )
+        error = WorkflowError("Custom error message", error_code="CUSTOM_ERROR", details=details)
 
         assert error.message == "Custom error message"
         assert error.error_code == "CUSTOM_ERROR"

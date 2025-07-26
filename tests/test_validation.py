@@ -2,19 +2,12 @@
 Tests for the input validation and sanitization system.
 """
 
-# No path import needed
-
 import pytest
 
 from spec_server.errors import ErrorCode, SpecError
-from spec_server.validation import (
-    InputValidator,
-    ValidationResult,
-    validate_create_spec_params,
-    validate_read_spec_params,
-    validate_task_params,
-    validate_update_spec_params,
-)
+from spec_server.validation import InputValidator, ValidationResult, validate_create_spec_params, validate_read_spec_params, validate_task_params, validate_update_spec_params
+
+# No path import needed
 
 
 class TestInputValidator:
@@ -267,9 +260,7 @@ class TestValidationFunctions:
 
     def test_validate_create_spec_params_valid(self):
         """Test validating valid create_spec parameters."""
-        result = validate_create_spec_params(
-            "test-feature", "This is a valid feature idea"
-        )
+        result = validate_create_spec_params("test-feature", "This is a valid feature idea")
 
         assert result["feature_name"] == "test-feature"
         assert result["initial_idea"] == "This is a valid feature idea"
@@ -290,9 +281,7 @@ class TestValidationFunctions:
 
     def test_validate_update_spec_params_valid(self):
         """Test validating valid update_spec_document parameters."""
-        result = validate_update_spec_params(
-            "test-feature", "requirements", "# Requirements\n\nValid content", True
-        )
+        result = validate_update_spec_params("test-feature", "requirements", "# Requirements\n\nValid content", True)
 
         assert result["feature_name"] == "test-feature"
         assert result["document_type"] == "requirements"
@@ -341,9 +330,7 @@ class TestValidationResult:
 
     def test_create_valid_result(self):
         """Test creating a valid ValidationResult."""
-        result = ValidationResult(
-            is_valid=True, sanitized_value="test-value", errors=[], warnings=["warning"]
-        )
+        result = ValidationResult(is_valid=True, sanitized_value="test-value", errors=[], warnings=["warning"])
 
         assert result.is_valid is True
         assert result.sanitized_value == "test-value"

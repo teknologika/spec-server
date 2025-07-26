@@ -19,7 +19,7 @@ from .mcp_tools import MCPTools
 logger = logging.getLogger(__name__)
 
 # Initialize the FastMCP server with proper configuration
-mcp: FastMCP = FastMCP(name="spec-server", version="v0.4.1")
+mcp: FastMCP = FastMCP(name="spec-server", version="v0.3.0")
 
 # Initialize MCP tools
 mcp_tools = MCPTools()
@@ -107,9 +107,7 @@ def create_spec(feature_name: str, initial_idea: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def update_spec_document(
-    feature_name: str, document_type: str, content: str, phase_approval: bool = False
-) -> Dict[str, Any]:
+def update_spec_document(feature_name: str, document_type: str, content: str, phase_approval: bool = False) -> Dict[str, Any]:
     """
     Update a spec document and manage workflow transitions.
 
@@ -131,9 +129,7 @@ def update_spec_document(
         Dictionary containing updated document and workflow status
     """
     try:
-        return mcp_tools.update_spec_document(
-            feature_name, document_type, content, phase_approval
-        )
+        return mcp_tools.update_spec_document(feature_name, document_type, content, phase_approval)
     except Exception as e:
         return format_error_response(e)
 
@@ -153,9 +149,7 @@ def list_specs() -> Dict[str, Any]:
 
 
 @mcp.tool()
-def read_spec_document(
-    feature_name: str, document_type: str, resolve_references: bool = True
-) -> Dict[str, Any]:
+def read_spec_document(feature_name: str, document_type: str, resolve_references: bool = True) -> Dict[str, Any]:
     """
     Read a spec document with optional file reference resolution.
 
@@ -175,17 +169,13 @@ def read_spec_document(
         Dictionary containing document content and metadata
     """
     try:
-        return mcp_tools.read_spec_document(
-            feature_name, document_type, resolve_references
-        )
+        return mcp_tools.read_spec_document(feature_name, document_type, resolve_references)
     except Exception as e:
         return format_error_response(e)
 
 
 @mcp.tool()
-def execute_task(
-    feature_name: str, task_identifier: Optional[str] = None
-) -> Dict[str, Any]:
+def execute_task(feature_name: str, task_identifier: Optional[str] = None) -> Dict[str, Any]:
     """
     Execute a specific implementation task or get the next task.
 
@@ -278,12 +268,8 @@ def run_server() -> None:
             port = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
             host = sys.argv[3] if len(sys.argv) > 3 else "127.0.0.1"
             logger.info(f"Starting spec-server with SSE transport on {host}:{port}")
-            logger.debug(
-                f"Server configuration: SSE transport, {host}:{port}, 7 tools registered"
-            )
-            logger.info(
-                "SSE transport includes CORS support for web client compatibility"
-            )
+            logger.debug(f"Server configuration: SSE transport, {host}:{port}, 7 tools registered")
+            logger.info("SSE transport includes CORS support for web client compatibility")
 
             # Run SSE server with configuration
             mcp.run_sse(port=port, host=host)  # type: ignore

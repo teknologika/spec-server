@@ -9,12 +9,7 @@ structure standards and handles document validation.
 import re
 from typing import Any, Dict, List, Optional
 
-from .models import (
-    DEFAULT_DESIGN_TEMPLATE,
-    DEFAULT_REQUIREMENTS_TEMPLATE,
-    DEFAULT_TASKS_TEMPLATE,
-    DocumentTemplate,
-)
+from .models import DEFAULT_DESIGN_TEMPLATE, DEFAULT_REQUIREMENTS_TEMPLATE, DEFAULT_TASKS_TEMPLATE, DocumentTemplate
 
 
 class DocumentGenerationError(Exception):
@@ -74,14 +69,10 @@ class DocumentGenerator:
             concepts = self._extract_concepts_from_idea(initial_idea)
 
             # Generate introduction
-            introduction = self._generate_requirements_introduction(
-                initial_idea, feature_name, concepts
-            )
+            introduction = self._generate_requirements_introduction(initial_idea, feature_name, concepts)
 
             # Generate requirements based on concepts
-            requirements_sections = self._generate_requirements_sections(
-                concepts, initial_idea
-            )
+            requirements_sections = self._generate_requirements_sections(concepts, initial_idea)
 
             # Combine into full document
             document = f"""# Requirements Document
@@ -134,9 +125,7 @@ class DocumentGenerator:
             components = self._generate_design_components(parsed_requirements)
             data_models = self._generate_design_data_models(parsed_requirements)
             error_handling = self._generate_design_error_handling(parsed_requirements)
-            testing_strategy = self._generate_design_testing_strategy(
-                parsed_requirements
-            )
+            testing_strategy = self._generate_design_testing_strategy(parsed_requirements)
 
             # Combine into full document
             document = f"""# Design Document
@@ -174,9 +163,7 @@ class DocumentGenerator:
                 details={"requirements": requirements[:200], "error": str(e)},
             )
 
-    def generate_tasks(
-        self, requirements: str, design: str, feature_name: str = ""
-    ) -> str:
+    def generate_tasks(self, requirements: str, design: str, feature_name: str = "") -> str:
         """
         Generate implementation tasks based on requirements and design.
 
@@ -186,7 +173,7 @@ class DocumentGenerator:
             feature_name: Optional feature name for context
 
         Returns:
-            Formatted tasks document in markdown
+            Formatted tasks document in markdown using standard format
 
         Raises:
             DocumentGenerationError: If generation fails
@@ -211,12 +198,10 @@ class DocumentGenerator:
             parsed_design = self._parse_design(design)
 
             # Generate implementation tasks
-            tasks = self._generate_implementation_tasks(
-                parsed_requirements, parsed_design, feature_name
-            )
+            tasks = self._generate_implementation_tasks(parsed_requirements, parsed_design, feature_name)
 
-            # Format tasks as numbered checkboxes
-            formatted_tasks = self._format_tasks_as_checkboxes(tasks)
+            # Format tasks using the standard format with proper requirements linking
+            formatted_tasks = self._format_tasks_standard_format(tasks, parsed_requirements)
 
             # Combine into full document
             document = f"""# Implementation Plan
@@ -298,9 +283,7 @@ class DocumentGenerator:
             matches = re.findall(pattern, text)
             for match in matches:
                 if isinstance(match, tuple):
-                    concepts["actors"].extend(
-                        [m for m in match if m not in ["as a", "for"]]
-                    )
+                    concepts["actors"].extend([m for m in match if m not in ["as a", "for"]])
                 else:
                     concepts["actors"].append(match)
 
@@ -313,13 +296,7 @@ class DocumentGenerator:
             matches = re.findall(pattern, text)
             for match in matches:
                 if isinstance(match, tuple):
-                    concepts["actions"].extend(
-                        [
-                            m
-                            for m in match
-                            if m not in ["want to", "need to", "should", "can", "will"]
-                        ]
-                    )
+                    concepts["actions"].extend([m for m in match if m not in ["want to", "need to", "should", "can", "will"]])
                 else:
                     concepts["actions"].append(match)
 
@@ -334,15 +311,11 @@ class DocumentGenerator:
 
         # Remove duplicates and clean up
         for key in concepts:
-            concepts[key] = list(
-                set([item.strip() for item in concepts[key] if item.strip()])
-            )
+            concepts[key] = list(set([item.strip() for item in concepts[key] if item.strip()]))
 
         return concepts
 
-    def _generate_requirements_introduction(
-        self, initial_idea: str, feature_name: str, concepts: Dict[str, List[str]]
-    ) -> str:
+    def _generate_requirements_introduction(self, initial_idea: str, feature_name: str, concepts: Dict[str, List[str]]) -> str:
         """Generate the introduction section for requirements."""
         # Use feature_name directly in the intro text
 
@@ -364,9 +337,7 @@ class DocumentGenerator:
 
         return intro
 
-    def _generate_requirements_sections(
-        self, concepts: Dict[str, List[str]], initial_idea: str
-    ) -> str:
+    def _generate_requirements_sections(self, concepts: Dict[str, List[str]], initial_idea: str) -> str:
         """Generate requirements sections with user stories and acceptance criteria."""
         requirements = []
 
@@ -388,9 +359,7 @@ class DocumentGenerator:
                         f"IF {actor} provides invalid input THEN the system SHALL provide clear error messages",
                     ]
 
-                    criteria_text = "\n".join(
-                        [f"{i+1}. {criterion}" for i, criterion in enumerate(criteria)]
-                    )
+                    criteria_text = "\n".join([f"{i+1}. {criterion}" for i, criterion in enumerate(criteria)])
 
                     requirement = f"""### Requirement {req_num}
 
@@ -455,9 +424,7 @@ class DocumentGenerator:
 
         return parsed
 
-    def _generate_design_overview(
-        self, parsed_requirements: Dict[str, Any], feature_name: str
-    ) -> str:
+    def _generate_design_overview(self, parsed_requirements: Dict[str, Any], feature_name: str) -> str:
         """Generate design overview section."""
         actors = parsed_requirements.get("actors", [])
         user_stories = parsed_requirements.get("user_stories", [])
@@ -475,9 +442,7 @@ class DocumentGenerator:
 
         return overview
 
-    def _generate_design_architecture(
-        self, parsed_requirements: Dict[str, List[str]]
-    ) -> str:
+    def _generate_design_architecture(self, parsed_requirements: Dict[str, List[str]]) -> str:
         """Generate architecture section."""
         return """The system follows a layered architecture pattern:
 
@@ -488,9 +453,7 @@ class DocumentGenerator:
 
 The architecture supports scalability, maintainability, and testability."""
 
-    def _generate_design_components(
-        self, parsed_requirements: Dict[str, List[str]]
-    ) -> str:
+    def _generate_design_components(self, parsed_requirements: Dict[str, List[str]]) -> str:
         """Generate components and interfaces section."""
         return """### Core Components
 
@@ -505,9 +468,7 @@ The architecture supports scalability, maintainability, and testability."""
 - **Internal APIs**: Component-to-component communication
 - **Data Interfaces**: Database and external service connections"""
 
-    def _generate_design_data_models(
-        self, parsed_requirements: Dict[str, List[str]]
-    ) -> str:
+    def _generate_design_data_models(self, parsed_requirements: Dict[str, List[str]]) -> str:
         """Generate data models section."""
         return """### Primary Entities
 
@@ -523,9 +484,7 @@ The system will include the following core data models:
 - All entities include audit fields for tracking
 - Configuration supports hierarchical organization"""
 
-    def _generate_design_error_handling(
-        self, parsed_requirements: Dict[str, List[str]]
-    ) -> str:
+    def _generate_design_error_handling(self, parsed_requirements: Dict[str, List[str]]) -> str:
         """Generate error handling section."""
         return """### Error Categories
 
@@ -542,9 +501,7 @@ All errors include:
 - Additional context and suggestions
 - Timestamp and correlation ID"""
 
-    def _generate_design_testing_strategy(
-        self, parsed_requirements: Dict[str, List[str]]
-    ) -> str:
+    def _generate_design_testing_strategy(self, parsed_requirements: Dict[str, List[str]]) -> str:
         """Generate testing strategy section."""
         return """### Testing Approach
 
@@ -590,6 +547,9 @@ All errors include:
         """Generate implementation tasks based on requirements and design."""
         tasks = []
 
+        # Extract requirement numbers from parsed requirements
+        requirement_numbers = self._extract_requirement_numbers(parsed_requirements)
+
         # Setup and infrastructure tasks
         tasks.append(
             {
@@ -601,31 +561,52 @@ All errors include:
                     "Set up development environment",
                     "Initialize version control",
                 ],
-                "requirements_refs": ["1.1"],
+                "requirements_refs": requirement_numbers[:1] if requirement_numbers else ["1.1"],
             }
         )
 
-        # Core implementation tasks
-        components = parsed_design.get(
-            "components", ["Core Module", "Service Layer", "Data Layer"]
-        )
+        # Core implementation tasks based on user stories
+        user_stories = parsed_requirements.get("user_stories", [])
+        components = parsed_design.get("components", ["Core Module", "Service Layer", "Data Layer"])
         task_id = 2
 
-        for i, component in enumerate(components[:3]):  # Limit to 3 main components
+        # Generate tasks based on user stories and components
+        for i, story in enumerate(user_stories[:3]):  # Limit to 3 main stories
+            actor = story.get("actor", "user")
+            want = story.get("want", "functionality")
+
             tasks.append(
                 {
                     "id": str(task_id),
-                    "description": f"Implement {component}",
+                    "description": f"Implement {want} for {actor}",
                     "details": [
-                        f"Create {component} interface and implementation",
-                        f"Add input validation for {component}",
-                        f"Write unit tests for {component}",
-                        f"Add error handling for {component}",
+                        f"Create interface for {want}",
+                        "Add input validation and error handling",
+                        f"Write unit tests for {want}",
+                        "Integrate with existing components",
                     ],
-                    "requirements_refs": [f"{task_id}.1", f"{task_id}.2"],
+                    "requirements_refs": requirement_numbers[i : i + 1] if i < len(requirement_numbers) else [f"{task_id}.1"],
                 }
             )
             task_id += 1
+
+        # If no user stories, fall back to component-based tasks
+        if not user_stories:
+            for i, component in enumerate(components[:3]):  # Limit to 3 main components
+                tasks.append(
+                    {
+                        "id": str(task_id),
+                        "description": f"Implement {component}",
+                        "details": [
+                            f"Create {component} interface and implementation",
+                            f"Add input validation for {component}",
+                            f"Write unit tests for {component}",
+                            f"Add error handling for {component}",
+                        ],
+                        "requirements_refs": requirement_numbers[i : i + 1] if i < len(requirement_numbers) else [f"{task_id}.1"],
+                    }
+                )
+                task_id += 1
 
         # Integration and testing tasks
         tasks.append(
@@ -638,11 +619,28 @@ All errors include:
                     "Add performance tests",
                     "Validate against requirements",
                 ],
-                "requirements_refs": ["1.1", "2.1"],
+                "requirements_refs": requirement_numbers[-2:] if len(requirement_numbers) >= 2 else requirement_numbers,
             }
         )
 
         return tasks
+
+    def _extract_requirement_numbers(self, parsed_requirements: Dict[str, Any]) -> List[str]:
+        """Extract requirement numbers from parsed requirements."""
+        # This is a simple implementation - in a real system you might parse
+        # the actual requirement numbers from the requirements document
+        requirement_numbers = []
+
+        # Generate requirement numbers based on the number of user stories
+        user_stories = parsed_requirements.get("user_stories", [])
+        for i, _ in enumerate(user_stories):
+            requirement_numbers.append(f"{i+1}.1")
+
+        # If no user stories, generate default requirement numbers
+        if not requirement_numbers:
+            requirement_numbers = ["1.1", "2.1", "3.1"]
+
+        return requirement_numbers
 
     def _format_tasks_as_checkboxes(self, tasks: List[Dict[str, List]]) -> str:
         """Format tasks as numbered checkboxes."""
@@ -669,9 +667,39 @@ All errors include:
 
         return "\n\n".join(formatted_tasks)
 
-    def _validate_requirements_format(
-        self, content: str, template: DocumentTemplate
-    ) -> bool:
+    def _format_tasks_standard_format(self, tasks: List[Dict[str, Any]], parsed_requirements: Dict[str, Any]) -> str:
+        """Format tasks using the standard format with proper requirements linking."""
+        formatted_tasks = []
+
+        for task in tasks:
+            task_line = f"- [ ] {task['id']}. {task['description']}"
+
+            # Add details as sub-bullets
+            details = []
+            for detail in task.get("details", []):
+                details.append(f"  - {detail}")
+
+            # Add requirements references using the standard format
+            req_refs: List[str] = task.get("requirements_refs", [])
+            if req_refs:
+                # Filter out placeholder references and ensure proper format
+                valid_refs = []
+                for ref in req_refs:
+                    if ref and ref != "[TBD]" and "." in ref:
+                        valid_refs.append(ref)
+
+                if valid_refs:
+                    req_text = ", ".join(valid_refs)
+                    details.append(f"  - _Requirements: {req_text}_")
+
+            if details:
+                task_line += "\n" + "\n".join(details)
+
+            formatted_tasks.append(task_line)
+
+        return "\n\n".join(formatted_tasks)
+
+    def _validate_requirements_format(self, content: str, template: DocumentTemplate) -> bool:
         """Validate requirements document format."""
         # Check for required sections
         required_sections = template.sections

@@ -82,9 +82,7 @@ class WorkflowEngine:
                 return Phase.TASKS
             elif design_exists:
                 return Phase.DESIGN
-            elif requirements_exists and self._is_phase_approved(
-                spec.feature_name, "requirements"
-            ):
+            elif requirements_exists and self._is_phase_approved(spec.feature_name, "requirements"):
                 return Phase.DESIGN
             elif requirements_exists:
                 return Phase.REQUIREMENTS
@@ -122,9 +120,7 @@ class WorkflowEngine:
 
             # Explicit approval is required for phase advancement
             # Either the phase must already be approved or explicit approval must be provided now
-            if not approval and not self._is_phase_approved(
-                spec.feature_name, current_phase.value
-            ):
+            if not approval and not self._is_phase_approved(spec.feature_name, current_phase.value):
                 return False
 
             # Check if required files exist for current phase
@@ -390,11 +386,7 @@ class WorkflowEngine:
         A phase is considered approved only if it has been explicitly approved
         by recording it in the approval_tracking dictionary.
         """
-        return (
-            feature_name in self.approval_tracking
-            and phase in self.approval_tracking[feature_name]
-            and self.approval_tracking[feature_name][phase]
-        )
+        return feature_name in self.approval_tracking and phase in self.approval_tracking[feature_name] and self.approval_tracking[feature_name][phase]
 
     def _record_phase_approval(self, feature_name: str, phase: str) -> None:
         """Record approval for a phase."""
@@ -413,16 +405,9 @@ class WorkflowEngine:
         elif phase == Phase.DESIGN:
             return spec.get_requirements_path().exists()
         elif phase == Phase.TASKS:
-            return (
-                spec.get_requirements_path().exists()
-                and spec.get_design_path().exists()
-            )
+            return spec.get_requirements_path().exists() and spec.get_design_path().exists()
         elif phase == Phase.COMPLETE:
-            return (
-                spec.get_requirements_path().exists()
-                and spec.get_design_path().exists()
-                and spec.get_tasks_path().exists()
-            )
+            return spec.get_requirements_path().exists() and spec.get_design_path().exists() and spec.get_tasks_path().exists()
         return False
 
     def _get_available_transitions(self, current_phase: Phase) -> List[str]:
