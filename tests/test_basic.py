@@ -9,7 +9,7 @@ from spec_server.server import create_server
 
 def test_version():
     """Test that version is defined."""
-    assert __version__ == "0.3.0"
+    assert __version__ == "0.5.0"
 
 
 def test_author():
