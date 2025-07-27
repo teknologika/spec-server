@@ -11,7 +11,7 @@ import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -152,12 +152,20 @@ class TaskItem(BaseModel):
         """Validate task identifier format."""
         if not v:
             raise ValueError("Task identifier cannot be empty")
-        # Allow formats like "1", "1.1", "1.2.3", etc.
-        parts = v.split(".")
-        for part in parts:
-            if not part.isdigit():
-                raise ValueError("Task identifier must contain only numbers and dots")
-        return v
+
+        # Allow numeric hierarchical formats like "1", "1.1", "1.2.3"
+        if re.match(r"^\d+(?:\.\d+)*$", v):
+            return v
+
+        # Allow auto-generated identifiers like "line_5"
+        if re.match(r"^line_\d+$", v):
+            return v
+
+        # Allow alphanumeric identifiers with underscores and hyphens
+        if re.match(r"^[a-zA-Z0-9_-]+$", v):
+            return v
+
+        raise ValueError("Task identifier must be alphanumeric with dots, underscores, or hyphens")
 
     @field_validator("content_type")
     @classmethod
@@ -432,3 +440,152 @@ class FileReferenceResolver:
                 errors.append(f"Reference '{ref.reference_text}': {ref.error_message}")
 
         return errors
+
+
+# Enhanced Design Format Models
+
+
+class DesignElementTemplate(BaseModel):
+    """Template for formatting technical elements with Intent/Goals/Logic sections."""
+
+    element_type: str = Field(..., description="Type: 'interface', 'component', 'data_model', 'service', 'class', 'architecture'")
+    intent_template: str = Field(..., description="Template for Intent section content")
+    goals_template: str = Field(..., description="Template for Goals section content")
+    logic_template: str = Field(..., description="Template for Logic section content")
+    section_names: Dict[str, str] = Field(default_factory=lambda: {"intent": "Intent", "goals": "Goals", "logic": "Logic"}, description="Customizable section names")
+    validation_rules: List[str] = Field(default_factory=list, description="Rules for validating generated content")
+
+    @field_validator("element_type")
+    @classmethod
+    def validate_element_type(cls, v: str) -> str:
+        """Validate element type."""
+        valid_types = ["interface", "component", "data_model", "service", "class", "architecture"]
+        if v not in valid_types:
+            raise ValueError(f"Element type must be one of: {valid_types}")
+        return v
+
+
+class TemplateConfig(BaseModel):
+    """Configuration model for customizing the Intent/Goals/Logic format structure."""
+
+    section_names: Dict[str, str] = Field(default_factory=lambda: {"intent": "Intent", "goals": "Goals", "logic": "Logic"}, description="Customizable section names")
+    element_types: List[str] = Field(default_factory=lambda: ["interface", "component", "data_model", "service", "class", "architecture"], description="Supported element types")
+    format_rules: Dict[str, Any] = Field(default_factory=dict, description="Formatting rules and patterns")
+    custom_templates: Dict[str, DesignElementTemplate] = Field(default_factory=dict, description="Custom templates for specific element types")
+
+    @field_validator("element_types")
+    @classmethod
+    def validate_element_types(cls, v: List[str]) -> List[str]:
+        """Validate element types list."""
+        valid_types = ["interface", "component", "data_model", "service", "class", "architecture"]
+        for element_type in v:
+            if element_type not in valid_types:
+                raise ValueError(f"Element type '{element_type}' must be one of: {valid_types}")
+        return v
+
+
+class TechnicalElement(BaseModel):
+    """Represents a detected technical element in a design document."""
+
+    element_type: str = Field(..., description="Type: 'interface', 'component', 'data_model', etc.")
+    element_name: str = Field(..., description="Name of the element")
+    content: str = Field(..., description="Original content of the element")
+    has_intent: bool = Field(default=False, description="Whether Intent section exists")
+    has_goals: bool = Field(default=False, description="Whether Goals section exists")
+    has_logic: bool = Field(default=False, description="Whether Logic section exists")
+    line_start: int = Field(..., description="Starting line number in document", ge=0)
+    line_end: int = Field(..., description="Ending line number in document", ge=0)
+
+    @field_validator("element_type")
+    @classmethod
+    def validate_element_type(cls, v: str) -> str:
+        """Validate element type."""
+        valid_types = ["interface", "component", "data_model", "service", "class", "architecture"]
+        if v not in valid_types:
+            raise ValueError(f"Element type must be one of: {valid_types}")
+        return v
+
+    @field_validator("line_end")
+    @classmethod
+    def validate_line_end(cls, v: int, info) -> int:
+        """Validate that line_end is greater than or equal to line_start."""
+        if hasattr(info, "data") and "line_start" in info.data:
+            line_start = info.data["line_start"]
+            if v < line_start:
+                raise ValueError("line_end must be greater than or equal to line_start")
+        return v
+
+
+class FormatAnalysisResult(BaseModel):
+    """Result of analyzing a design document for Intent/Goals/Logic format."""
+
+    total_elements: int = Field(..., description="Total technical elements found", ge=0)
+    elements_with_format: int = Field(..., description="Elements already having Intent/Goals/Logic", ge=0)
+    elements_needing_enhancement: List[TechnicalElement] = Field(default_factory=list, description="Elements missing format")
+    enhancement_summary: str = Field(..., description="Human-readable summary of changes")
+    estimated_changes: int = Field(..., description="Number of sections to be added", ge=0)
+
+    @field_validator("elements_with_format")
+    @classmethod
+    def validate_elements_with_format(cls, v: int, info) -> int:
+        """Validate that elements_with_format doesn't exceed total_elements."""
+        if hasattr(info, "data") and "total_elements" in info.data:
+            total_elements = info.data["total_elements"]
+            if v > total_elements:
+                raise ValueError("elements_with_format cannot exceed total_elements")
+        return v
+
+
+class EnhancedDesignTemplate(DocumentTemplate):
+    """Extended design template that includes Intent/Goals/Logic formatting rules."""
+
+    element_patterns: Dict[str, str] = Field(default_factory=dict, description="Regex patterns to identify different element types")
+    format_templates: Dict[str, DesignElementTemplate] = Field(default_factory=dict, description="Templates for each element type")
+    enhanced_format_enabled: bool = Field(default=True, description="Whether enhanced formatting is enabled")
+    template_config: TemplateConfig = Field(default_factory=TemplateConfig, description="Configuration for template customization")
+
+    def __init__(self, **data):
+        """Initialize with enhanced design template defaults."""
+        if "template_type" not in data:
+            data["template_type"] = "design"
+        if "sections" not in data:
+            data["sections"] = ["Overview", "Architecture", "Components and Interfaces", "Data Models", "Error Handling", "Testing Strategy"]
+        if "format_rules" not in data:
+            data["format_rules"] = {"include_diagrams": True, "reference_requirements": True, "enhanced_format": True}
+        super().__init__(**data)
+
+
+# Default enhanced design template
+DEFAULT_ENHANCED_DESIGN_TEMPLATE = EnhancedDesignTemplate(
+    template_type="design",
+    sections=["Overview", "Architecture", "Components and Interfaces", "Data Models", "Error Handling", "Testing Strategy"],
+    format_rules={"include_diagrams": True, "reference_requirements": True, "enhanced_format": True},
+    element_patterns={
+        "interface": r"###\s+([A-Za-z][A-Za-z0-9_]*)\s*(?:Interface)?",
+        "component": r"###\s+([A-Za-z][A-Za-z0-9_]*)\s*(?:Component)?",
+        "data_model": r"###\s+([A-Za-z][A-Za-z0-9_]*)\s*(?:Model|Entity|Schema)?",
+        "service": r"###\s+([A-Za-z][A-Za-z0-9_]*)\s*(?:Service|Manager|Handler)?",
+        "class": r"class\s+([A-Za-z][A-Za-z0-9_]*)",
+        "architecture": r"###\s+([A-Za-z][A-Za-z0-9_\s]*)\s*(?:Architecture|System|Integration)",
+    },
+    format_templates={
+        "interface": DesignElementTemplate(
+            element_type="interface",
+            intent_template="Simple summary of what this interface provides",
+            goals_template="- Define clear contract for {element_name}\n- Ensure type safety and validation\n- Support extensibility and maintainability",
+            logic_template="Detailed explanation of how this interface works, its methods, parameters, and expected behavior",
+        ),
+        "component": DesignElementTemplate(
+            element_type="component",
+            intent_template="Core functionality provided by this component",
+            goals_template="- Implement specific business logic for {element_name}\n- Maintain separation of concerns\n- Provide reliable and testable functionality",
+            logic_template="Explanation of the component's internal workings, dependencies, and how it integrates with other system parts",
+        ),
+        "data_model": DesignElementTemplate(
+            element_type="data_model",
+            intent_template="Data structure and relationships for {element_name}",
+            goals_template="- Define clear data schema and validation rules\n- Support data integrity and consistency\n- Enable efficient data operations",
+            logic_template="Description of the data model's fields, relationships, constraints, and how it supports the business domain",
+        ),
+    },
+)

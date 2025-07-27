@@ -20,7 +20,7 @@ class TaskParser:
     def __init__(self):
         """Initialize the TaskParser."""
         # Regex patterns for different task formats
-        self.checkbox_pattern = re.compile(r"^(\s*)-\s*\[([x\s-])\]\s*(.+)", re.MULTILINE)
+        self.checkbox_pattern = re.compile(r"^(\s*)-\s*\[([^\]]*)\]\s*(.+)", re.MULTILINE)
         self.numbered_pattern = re.compile(r"^(\s*)(\d+(?:\.\d+)*)\.\s*(.+)", re.MULTILINE)
         self.requirements_pattern = re.compile(r"Requirements:\s*([\d\.,\s]+)", re.IGNORECASE)
 
@@ -131,6 +131,8 @@ class TaskParser:
         description = re.sub(r"^\d+(?:\.\d+)*\s+", "", description)
         # Remove requirements reference
         description = self.requirements_pattern.sub("", description)
+        # Remove trailing dash and whitespace that may be left after removing requirements
+        description = re.sub(r"\s*-\s*$", "", description)
         return description.strip()
 
     def _build_hierarchy(self, tasks: List[TaskItem]) -> None:

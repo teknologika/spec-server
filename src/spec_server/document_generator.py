@@ -9,7 +9,10 @@ structure standards and handles document validation.
 import re
 from typing import Any, Dict, List, Optional
 
-from .models import DEFAULT_DESIGN_TEMPLATE, DEFAULT_REQUIREMENTS_TEMPLATE, DEFAULT_TASKS_TEMPLATE, DocumentTemplate
+from .design_element_formatter import DesignElementFormatter
+from .design_format_detector import DesignFormatDetector
+from .design_template_manager import DesignTemplateManager
+from .models import DEFAULT_DESIGN_TEMPLATE, DEFAULT_REQUIREMENTS_TEMPLATE, DEFAULT_TASKS_TEMPLATE, DocumentTemplate, FormatAnalysisResult
 
 
 class DocumentGenerationError(Exception):
@@ -42,6 +45,11 @@ class DocumentGenerator:
             "design": DEFAULT_DESIGN_TEMPLATE,
             "tasks": DEFAULT_TASKS_TEMPLATE,
         }
+
+        # Initialize enhanced design format components
+        self.template_manager = DesignTemplateManager()
+        self.format_detector = DesignFormatDetector(self.template_manager.get_enhanced_template())
+        self.element_formatter = DesignElementFormatter(self.template_manager.get_enhanced_template())
 
     def generate_requirements(self, initial_idea: str, feature_name: str = "") -> str:
         """
@@ -94,16 +102,20 @@ class DocumentGenerator:
                 details={"initial_idea": initial_idea, "error": str(e)},
             )
 
-    def generate_design(self, requirements: str, feature_name: str = "") -> str:
+    def generate_design(self, requirements: str, feature_name: str = "", existing_design: str = "") -> str:
         """
         Generate a design document based on approved requirements.
+
+        If existing_design is provided, it will be analyzed and enhanced with
+        Intent/Goals/Logic format for any technical elements that lack it.
 
         Args:
             requirements: Content of the requirements document
             feature_name: Optional feature name for context
+            existing_design: Optional existing design content to enhance
 
         Returns:
-            Formatted design document in markdown
+            Formatted design document in markdown with enhanced format
 
         Raises:
             DocumentGenerationError: If generation fails
@@ -116,45 +128,12 @@ class DocumentGenerator:
             )
 
         try:
-            # Parse requirements to extract key information
-            parsed_requirements = self._parse_requirements(requirements)
-
-            # Generate design sections
-            overview = self._generate_design_overview(parsed_requirements, feature_name)
-            architecture = self._generate_design_architecture(parsed_requirements)
-            components = self._generate_design_components(parsed_requirements)
-            data_models = self._generate_design_data_models(parsed_requirements)
-            error_handling = self._generate_design_error_handling(parsed_requirements)
-            testing_strategy = self._generate_design_testing_strategy(parsed_requirements)
-
-            # Combine into full document
-            document = f"""# Design Document
-
-## Overview
-
-{overview}
-
-## Architecture
-
-{architecture}
-
-## Components and Interfaces
-
-{components}
-
-## Data Models
-
-{data_models}
-
-## Error Handling
-
-{error_handling}
-
-## Testing Strategy
-
-{testing_strategy}"""
-
-            return document
+            if existing_design.strip():
+                # Enhance existing design document
+                return self._enhance_existing_design(existing_design, requirements, feature_name)
+            else:
+                # Generate new design document with enhanced format
+                return self._generate_new_design_with_enhanced_format(requirements, feature_name)
 
         except Exception as e:
             raise DocumentGenerationError(
@@ -162,6 +141,24 @@ class DocumentGenerator:
                 error_code="DESIGN_GENERATION_FAILED",
                 details={"requirements": requirements[:200], "error": str(e)},
             )
+
+    def analyze_design_format(self, design_content: str) -> FormatAnalysisResult:
+        """
+        Analyze a design document to identify elements needing Intent/Goals/Logic enhancement.
+
+        Args:
+            design_content: The design document content to analyze
+
+        Returns:
+            FormatAnalysisResult with analysis details
+
+        Raises:
+            DocumentGenerationError: If analysis fails
+        """
+        try:
+            return self.format_detector.analyze_design_document(design_content)
+        except Exception as e:
+            raise DocumentGenerationError(f"Failed to analyze design format: {str(e)}", error_code="FORMAT_ANALYSIS_FAILED", details={"content_length": len(design_content), "error": str(e)})
 
     def generate_tasks(self, requirements: str, design: str, feature_name: str = "") -> str:
         """
@@ -698,6 +695,175 @@ All errors include:
             formatted_tasks.append(task_line)
 
         return "\n\n".join(formatted_tasks)
+
+    def _enhance_existing_design(self, existing_design: str, requirements: str, feature_name: str) -> str:
+        """
+        Enhance an existing design document with Intent/Goals/Logic format.
+
+        Args:
+            existing_design: Existing design document content
+            requirements: Requirements document content for context
+            feature_name: Feature name for context
+
+        Returns:
+            Enhanced design document with Intent/Goals/Logic format
+        """
+        # Analyze the existing design to identify elements needing enhancement
+        analysis_result = self.format_detector.analyze_design_document(existing_design)
+
+        if not analysis_result.elements_needing_enhancement:
+            # No enhancement needed, return original content
+            return existing_design
+
+        # Start with the original content
+        enhanced_content = existing_design
+
+        # Enhance each element that needs formatting
+        for element in analysis_result.elements_needing_enhancement:
+            try:
+                # Format the element with Intent/Goals/Logic sections
+                formatted_element = self.element_formatter.format_element(element)
+
+                # Replace the original element content with the formatted version
+                enhanced_content = self._replace_element_in_content(enhanced_content, element, formatted_element)
+            except Exception:  # nosec
+                # Log error but continue with other elements
+                continue
+
+        return enhanced_content
+
+    def _generate_new_design_with_enhanced_format(self, requirements: str, feature_name: str) -> str:
+        """
+        Generate a new design document with enhanced Intent/Goals/Logic format.
+
+        Args:
+            requirements: Requirements document content
+            feature_name: Feature name for context
+
+        Returns:
+            New design document with enhanced format
+        """
+        # Parse requirements to extract key information
+        parsed_requirements = self._parse_requirements(requirements)
+
+        # Generate design sections with enhanced format
+        overview = self._generate_design_overview(parsed_requirements, feature_name)
+        architecture = self._generate_design_architecture(parsed_requirements)
+        components = self._generate_enhanced_design_components(parsed_requirements)
+        data_models = self._generate_enhanced_design_data_models(parsed_requirements)
+        error_handling = self._generate_design_error_handling(parsed_requirements)
+        testing_strategy = self._generate_design_testing_strategy(parsed_requirements)
+
+        # Combine into full document
+        document = f"""# Design Document
+
+## Overview
+
+{overview}
+
+## Architecture
+
+{architecture}
+
+## Components and Interfaces
+
+{components}
+
+## Data Models
+
+{data_models}
+
+## Error Handling
+
+{error_handling}
+
+## Testing Strategy
+
+{testing_strategy}"""
+
+        return document
+
+    def _generate_enhanced_design_components(self, parsed_requirements: Dict[str, Any]) -> str:
+        """Generate components section with Intent/Goals/Logic format."""
+        components_content = self._generate_design_components(parsed_requirements)
+
+        # Parse the generated content to identify components and enhance them
+        try:
+            analysis_result = self.format_detector.analyze_design_document(components_content)
+
+            enhanced_content = components_content
+            for element in analysis_result.elements_needing_enhancement:
+                formatted_element = self.element_formatter.format_element(element)
+                enhanced_content = self._replace_element_in_content(enhanced_content, element, formatted_element)
+
+            return enhanced_content
+        except Exception:
+            # Fall back to original content if enhancement fails
+            return components_content
+
+    def _generate_enhanced_design_data_models(self, parsed_requirements: Dict[str, Any]) -> str:
+        """Generate data models section with Intent/Goals/Logic format."""
+        data_models_content = self._generate_design_data_models(parsed_requirements)
+
+        # Parse the generated content to identify data models and enhance them
+        try:
+            analysis_result = self.format_detector.analyze_design_document(data_models_content)
+
+            enhanced_content = data_models_content
+            for element in analysis_result.elements_needing_enhancement:
+                formatted_element = self.element_formatter.format_element(element)
+                enhanced_content = self._replace_element_in_content(enhanced_content, element, formatted_element)
+
+            return enhanced_content
+        except Exception:
+            # Fall back to original content if enhancement fails
+            return data_models_content
+
+    def _replace_element_in_content(self, content: str, element, formatted_element: str) -> str:
+        """
+        Replace an element's content in the document with the formatted version.
+
+        Args:
+            content: Full document content
+            element: TechnicalElement to replace
+            formatted_element: Formatted element content
+
+        Returns:
+            Content with element replaced
+        """
+        try:
+            lines = content.split("\n")
+
+            # Validate line numbers
+            start_line = element.line_start - 1  # Convert to 0-based indexing
+            end_line = element.line_end
+
+            # Check if line numbers are valid
+            if start_line < 0 or start_line >= len(lines) or end_line > len(lines) or start_line >= end_line:
+                return content  # Return original content if line numbers are invalid
+
+            # Replace the element's lines with the formatted content
+            formatted_lines = formatted_element.split("\n")
+
+            # Reconstruct the content
+            new_lines = lines[:start_line] + formatted_lines + lines[end_line:]
+
+            return "\n".join(new_lines)
+        except Exception:
+            # If replacement fails, return original content
+            return content
+
+    def update_template_manager(self, template_manager: DesignTemplateManager) -> None:
+        """
+        Update the template manager used for enhanced design formatting.
+
+        Args:
+            template_manager: New template manager to use
+        """
+        self.template_manager = template_manager
+        enhanced_template = template_manager.get_enhanced_template()
+        self.format_detector.update_template(enhanced_template)
+        self.element_formatter.update_template(enhanced_template)
 
     def _validate_requirements_format(self, content: str, template: DocumentTemplate) -> bool:
         """Validate requirements document format."""

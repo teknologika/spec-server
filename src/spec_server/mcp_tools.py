@@ -478,8 +478,16 @@ class MCPTools:
                 )
 
         try:
+            # Get task identifier (handle both Task objects and dictionaries)
+            if hasattr(task, "identifier"):
+                # Task object
+                task_id = task.identifier
+            else:
+                # Dictionary
+                task_id = task["identifier"]
+
             # Get task object for dependency checking
-            task_obj = self.task_executor.get_task_object_by_identifier(spec, task["identifier"])
+            task_obj = self.task_executor.get_task_object_by_identifier(spec, task_id)
             if not task_obj:
                 raise MCPToolsError(
                     f"Task '{task_identifier}' not found in spec '{feature_name}'",
@@ -496,11 +504,11 @@ class MCPTools:
                 incomplete_deps = [dep.identifier for dep in dependencies if dep.status != TaskStatus.COMPLETED.value]
 
                 raise MCPToolsError(
-                    f"Task '{task['identifier']}' cannot be executed. Dependencies not complete: {incomplete_deps}",
+                    f"Task '{task_id}' cannot be executed. Dependencies not complete: {incomplete_deps}",
                     error_code="TASK_DEPENDENCIES_NOT_COMPLETE",
                     details={
                         "feature_name": feature_name,
-                        "task_identifier": task["identifier"],
+                        "task_identifier": task_id,
                         "incomplete_dependencies": incomplete_deps,
                     },
                 )
@@ -509,7 +517,7 @@ class MCPTools:
             context = self.task_executor.execute_task_context(spec, task_obj)
 
             # Update task status to in progress
-            self.task_executor.update_task_status(spec, task["identifier"], TaskStatus.IN_PROGRESS)
+            self.task_executor.update_task_status(spec, task_id, TaskStatus.IN_PROGRESS)
 
             # Get task progress
             completed, total = self.task_executor.get_task_progress(tasks)
@@ -518,12 +526,12 @@ class MCPTools:
                 "success": True,
                 "feature_name": feature_name,
                 "task": {
-                    "identifier": task["identifier"],
-                    "description": task["description"],
+                    "identifier": task_id,
+                    "description": task.description if hasattr(task, "description") else task["description"],
                     "status": TaskStatus.IN_PROGRESS.value,
-                    "requirements_refs": task["requirements_refs"],
-                    "parent_task": task["parent_task"],
-                    "sub_tasks": task["sub_tasks"],
+                    "requirements_refs": task.requirements_refs if hasattr(task, "requirements_refs") else task["requirements_refs"],
+                    "parent_task": task.parent_task if hasattr(task, "parent_task") else task["parent_task"],
+                    "sub_tasks": task.sub_tasks if hasattr(task, "sub_tasks") else task["sub_tasks"],
                 },
                 "execution_context": {
                     "has_requirements": context.requirements_content is not None,
@@ -538,7 +546,7 @@ class MCPTools:
                     "total": total,
                     "percentage": (round((completed / total) * 100, 1) if total > 0 else 0),
                 },
-                "message": f"Started execution of task '{task['identifier']}': {task['description']}",
+                "message": f"Started execution of task '{task_id}': {task.description if hasattr(task, 'description') else task['description']}",
             }
 
         except SpecError as e:
