@@ -5,6 +5,6 @@ Provides a systematic approach to feature development through a three-phase work
 Requirements → Design → Implementation Tasks
 """
 
-__version__ = "v0.5.0"
+__version__ = "vv0.5.0"
 __author__ = "Teknologika"
 __email__ = "hello@teknologika.com"
