@@ -83,32 +83,43 @@ def get_phase_guidance_content(phase: str = "general") -> Dict[str, Any]:
             "What are the must-have vs. nice-to-have aspects?",
             "How will we know if it's successful?",
             "Are there any constraints we should consider?",
-            "What are the acceptance criteria?",
+            "What are the specific acceptance criteria for each requirement?",
+            "How should we structure the requirements for clear task referencing?",
         ],
-        "template": """# Requirements for [Feature Name]
+        "template": """# Requirements Document
 
-## Overview
-[Brief description of the feature based on discussion]
+## Introduction
+[Brief description of the feature and its purpose]
 
-## User Stories
-- As a [user type], I want to [action] so that [benefit]
-- As a [user type], I want to [action] so that [benefit]
+## Requirements
 
-## Acceptance Criteria
-- [Specific, testable condition]
-- [Specific, testable condition]
+### Requirement 1
 
-## Constraints
-- [Technical constraint]
-- [Business constraint]
+**User Story:** As a [user type], I want to [action], so that [benefit]
 
-## Out of Scope
-- [Feature or aspect explicitly not included]""",
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
+3. WHEN [condition] THEN the system SHALL [response]
+4. WHEN [condition] THEN the system SHALL [response]
+
+### Requirement 2
+
+**User Story:** As a [user type], I want to [action], so that [benefit]
+
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
+3. WHEN [condition] THEN the system SHALL [response]""",
         "best_practices": [
             "Focus on the 'what', not the 'how'",
-            "Use clear, testable acceptance criteria",
-            "Identify constraints early",
-            "Define what's out of scope explicitly",
+            "Use clear, testable acceptance criteria in EARS format",
+            "Number requirements sequentially (1, 2, 3, etc.)",
+            "Number acceptance criteria within each requirement (1, 2, 3, etc.)",
+            "Use WHEN/THEN/SHALL format for acceptance criteria",
+            "Make criteria specific and measurable",
             "Connect requirements to user needs",
         ],
         "conversation_starters": [
@@ -234,7 +245,9 @@ def get_phase_guidance_content(phase: str = "general") -> Dict[str, Any]:
   - [Detailed sub-task or implementation note]
   - [Another implementation detail]
   - [Additional context or requirements]
-  - _Requirements: 2.1, 2.3, 3.2_""",
+  - _Requirements: 2.1, 2.3, 3.2_
+
+**Note:** Requirements references use the format "requirement.criteria" (e.g., 1.1 = Requirement 1, Acceptance Criteria 1)""",
         "best_practices": [
             "Break down tasks into manageable chunks",
             "Include testing tasks explicitly",

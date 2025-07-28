@@ -56,13 +56,21 @@ Before creating the requirements document, the LLM should have a conversation to
 
 3. **Discuss acceptance criteria**:
    ```
-   Let's define some acceptance criteria. These are specific conditions that must be met for the feature to be considered complete. For example:
-   - Users should be able to...
-   - The system should respond within...
-   - When an error occurs...
+   Let's define some acceptance criteria using the EARS format. These are specific conditions that must be met for the feature to be considered complete:
+   - WHEN [condition] THEN the system SHALL [response]
+   - WHEN [condition] THEN the system SHALL [response]
+   - IF [condition] THEN the system SHALL [response]
    ```
 
-4. **Summarize understanding**:
+4. **Structure requirements properly**:
+   ```
+   I'll organize these into numbered requirements with numbered acceptance criteria. This creates a clear reference system where:
+   - Requirement 1 has acceptance criteria 1.1, 1.2, 1.3, etc.
+   - Requirement 2 has acceptance criteria 2.1, 2.2, 2.3, etc.
+   - Tasks can then reference specific criteria like "1.1, 2.3, 3.1"
+   ```
+
+5. **Summarize understanding**:
    ```
    Based on our discussion, here's my understanding of what you need... [summary]
    Is this accurate? Would you like to add or modify anything?
@@ -158,32 +166,48 @@ er name="feature_name">feature-name</parameter>
 After thorough requirements discussion:
 
 ```
-Based on our conversation, I'll document the requirements for this feature.
+Based on our conversation, I'll document the requirements for this feature using the proper numbering system.
 
 <function_calls>
 <invoke name="update_spec_document">
 <parameter name="feature_name">feature-name</parameter>
 <parameter name="document_type">requirements</parameter>
 <parameter name="content">
-# Requirements for [Feature Name]
+# Requirements Document
 
-## Overview
-[Brief description of the feature based on discussion]
+## Introduction
+[Brief description of the feature and its purpose based on discussion]
 
-## User Stories
-- As a [user type], I want to [action] so that [benefit]
-- As a [user type], I want to [action] so that [benefit]
+## Requirements
 
-## Acceptance Criteria
-- [Specific, testable condition]
-- [Specific, testable condition]
+### Requirement 1
 
-## Constraints
-- [Technical constraint]
-- [Business constraint]
+**User Story:** As a [user type], I want to [action], so that [benefit]
 
-## Out of Scope
-- [Feature or aspect explicitly not included]
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
+3. WHEN [condition] THEN the system SHALL [response]
+
+### Requirement 2
+
+**User Story:** As a [user type], I want to [action], so that [benefit]
+
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
+
+### Requirement 3
+
+**User Story:** As a [user type], I want to [action], so that [benefit]
+
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
+3. WHEN [condition] THEN the system SHALL [response]
 </parameter>
 <parameter name="phase_approval">false</parameter>
 </invoke>
@@ -408,9 +432,15 @@ When creating design documents, always use this structure for technical elements
 The spec-server automatically formats task lists to ensure consistency:
 
 - **Automatic formatting**: Tasks are reformatted into the correct structure during read/create/update operations
-- **Requirements linking**: Tasks are automatically linked to relevant requirements based on content analysis
+- **Requirements linking**: Tasks are automatically linked to relevant requirements using the numbering system
 - **Content redistribution**: Non-task content is moved to appropriate documents (requirements or design)
 - **Completion validation**: Task completion is validated against requirements and design
+
+**Requirement Numbering System:**
+- Requirements are numbered sequentially (1, 2, 3, etc.)
+- Acceptance criteria are numbered within each requirement (1, 2, 3, etc.)
+- Tasks reference specific criteria using "requirement.criteria" format (e.g., 1.1, 2.3, 3.1)
+- This creates clear traceability from implementation back to specific acceptance criteria
 
 When creating tasks:
 - Use a flat numbered list format (no nested numbering like 1.1, 1.2)
@@ -487,26 +517,49 @@ The system will automatically enhance this design with the Intent/Goals/Logic fo
 ### Requirements Document Template
 
 ```markdown
-# Requirements for [Feature Name]
+# Requirements Document
 
-## Overview
-[Brief description of the feature]
+## Introduction
+[Brief description of the feature and its purpose]
 
-## User Stories
-- As a [user type], I want to [action] so that [benefit]
-- As a [user type], I want to [action] so that [benefit]
+## Requirements
 
-## Acceptance Criteria
-- [Specific, testable condition]
-- [Specific, testable condition]
+### Requirement 1
 
-## Constraints
-- [Technical constraint]
-- [Business constraint]
+**User Story:** As a [user type], I want to [action], so that [benefit]
 
-## Out of Scope
-- [Feature or aspect explicitly not included]
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
+3. WHEN [condition] THEN the system SHALL [response]
+4. WHEN [condition] THEN the system SHALL [response]
+
+### Requirement 2
+
+**User Story:** As a [user type], I want to [action], so that [benefit]
+
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
+3. WHEN [condition] THEN the system SHALL [response]
+
+### Requirement 3
+
+**User Story:** As a [user type], I want to [action], so that [benefit]
+
+#### Acceptance Criteria
+
+1. WHEN [condition] THEN the system SHALL [response]
+2. WHEN [condition] THEN the system SHALL [response]
 ```
+
+**Important Numbering System:**
+- **Requirements**: Numbered sequentially (1, 2, 3, etc.)
+- **Acceptance Criteria**: Numbered within each requirement (1, 2, 3, etc.)
+- **Reference Format**: Tasks reference specific criteria as "1.1, 1.2, 2.1, 3.2" (requirement.criteria)
+- **EARS Format**: Use "WHEN [condition] THEN system SHALL [response]" for acceptance criteria
 
 ### Design Document Template
 
@@ -585,13 +638,14 @@ The system will automatically enhance this design with the Intent/Goals/Logic fo
   - [Another implementation detail]
   - [Additional context or requirements]
   - _Requirements: 2.1, 2.3, 3.2_
-
-## Notes:
-- Tasks are automatically formatted with proper structure
-- Requirements references are automatically added based on content analysis
-- Non-task content is automatically moved to appropriate documents
-- Task completion is validated against requirements and design
 ```
+
+**Important Notes:**
+- **Requirements References**: Use format "requirement.criteria" (e.g., 1.1 = Requirement 1, Acceptance Criteria 1)
+- **Automatic Formatting**: Tasks are automatically formatted with proper structure
+- **Automatic Linking**: Requirements references are automatically added based on content analysis
+- **Content Organization**: Non-task content is automatically moved to appropriate documents
+- **Validation**: Task completion is validated against requirements and design
 
 ## Conclusion
 

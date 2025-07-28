@@ -121,7 +121,30 @@ class TestGetPhaseGuidanceContent:
 
         # Check specific content
         assert "Who will use this feature?" in guidance["questions_to_ask"]
-        assert "# Requirements for [Feature Name]" in guidance["template"]
+        assert "# Requirements Document" in guidance["template"]
+
+    def test_requirements_numbering_system(self):
+        """Test that requirements guidance includes proper numbering system."""
+        guidance = get_phase_guidance_content("requirements")
+        template = guidance["template"]
+
+        # Check for proper requirement numbering
+        assert "### Requirement 1" in template
+        assert "### Requirement 2" in template
+
+        # Check for proper acceptance criteria numbering
+        assert "#### Acceptance Criteria" in template
+        assert "1. WHEN" in template
+        assert "2. WHEN" in template
+        assert "3. WHEN" in template
+
+        # Check for EARS format
+        assert "THEN the system SHALL" in template
+
+        # Check best practices include numbering guidance
+        best_practices = guidance["best_practices"]
+        numbering_practices = [practice for practice in best_practices if "number" in practice.lower()]
+        assert len(numbering_practices) >= 2, "Should have practices about numbering requirements and criteria"
 
     def test_get_design_guidance(self):
         """Test getting design phase guidance."""
@@ -150,6 +173,23 @@ class TestGetPhaseGuidanceContent:
         # Check specific content
         assert "Should we use a particular development methodology?" in guidance["questions_to_ask"]
         assert "# Implementation Plan" in guidance["template"]
+
+    def test_tasks_requirement_references(self):
+        """Test that tasks guidance includes proper requirement reference format."""
+        guidance = get_phase_guidance_content("tasks")
+        template = guidance["template"]
+
+        # Check for requirement reference format
+        assert "_Requirements:" in template
+        assert "1.1, 1.2, 2.1" in template
+        assert "1.3, 2.2, 3.1" in template
+        assert "2.1, 2.3, 3.2" in template
+
+        # Check for explanation of numbering system
+        assert "requirement.criteria" in template
+
+        # Check that template explains the reference format
+        assert "Requirement 1, Acceptance Criteria 1" in template or "requirement.criteria" in template
 
     def test_get_general_guidance(self):
         """Test getting general guidance."""
@@ -184,6 +224,56 @@ class TestGetPhaseGuidanceContent:
         guidance_lower = get_phase_guidance_content("requirements")
 
         assert guidance_upper == guidance_lower
+
+
+class TestRequirementNumberingSystem:
+    """Test cases for requirement numbering system documentation."""
+
+    def test_numbering_system_consistency(self):
+        """Test that numbering system is consistently documented across guidance."""
+        requirements_guidance = get_phase_guidance_content("requirements")
+        tasks_guidance = get_phase_guidance_content("tasks")
+
+        # Requirements should show proper numbering structure
+        req_template = requirements_guidance["template"]
+        assert "### Requirement 1" in req_template
+        assert "### Requirement 2" in req_template
+        assert "1. WHEN" in req_template
+        assert "2. WHEN" in req_template
+
+        # Tasks should show proper reference format
+        task_template = tasks_guidance["template"]
+        assert "_Requirements: 1.1, 1.2, 2.1_" in task_template
+        assert "_Requirements: 1.3, 2.2, 3.1_" in task_template
+
+        # Both should be consistent in their numbering approach
+        assert "requirement.criteria" in task_template
+
+    def test_ears_format_documentation(self):
+        """Test that EARS format is properly documented."""
+        guidance = get_phase_guidance_content("requirements")
+        template = guidance["template"]
+
+        # Check for EARS format elements
+        assert "WHEN [condition] THEN the system SHALL [response]" in template
+
+        # Check that best practices mention EARS
+        best_practices = guidance["best_practices"]
+        ears_practices = [practice for practice in best_practices if "EARS" in practice or "WHEN/THEN/SHALL" in practice]
+        assert len(ears_practices) >= 1, "Should have practices about EARS format"
+
+    def test_traceability_documentation(self):
+        """Test that traceability from tasks to requirements is documented."""
+        tasks_guidance = get_phase_guidance_content("tasks")
+
+        # Check that the template explains the reference system
+        template = tasks_guidance["template"]
+        assert "requirement.criteria" in template
+
+        # Check that best practices mention traceability
+        best_practices = tasks_guidance["best_practices"]
+        reference_practices = [practice for practice in best_practices if "reference" in practice.lower() or "requirements" in practice.lower()]
+        assert len(reference_practices) >= 1, "Should have practices about referencing requirements"
 
 
 class TestGetIntroductionPrompt:

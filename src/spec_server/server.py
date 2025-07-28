@@ -19,7 +19,7 @@ from .mcp_tools import MCPTools
 logger = logging.getLogger(__name__)
 
 # Initialize the FastMCP server with proper configuration
-mcp: FastMCP = FastMCP(name="spec-server", version="v0.6.0")
+mcp: FastMCP = FastMCP(name="spec-server", version="v0.6.3")
 
 # Initialize MCP tools
 mcp_tools = MCPTools()
