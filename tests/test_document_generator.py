@@ -442,6 +442,81 @@ class TestDocumentGenerator:
             # This is acceptable - the generator detected invalid input
             pass
 
+    def test_generate_requirements_contains_meaningful_content(self):
+        """
+        Test that generated requirements contain meaningful content from the initial idea, not generic templates.
+
+        This test prevents regression where requirements generation would fall back to generic content like
+        'As a user, I want to use system, so that I can achieve my goals efficiently' instead of incorporating
+        the actual feature description provided by the user.
+        """
+        generator = DocumentGenerator()
+
+        # Test with a specific, detailed feature idea
+        initial_idea = "A dashboard to track project metrics and generate automated reports for team performance analysis"
+        result = generator.generate_requirements(initial_idea, "metrics-dashboard")
+
+        # Verify the requirements contain specific content from the initial idea
+        result_lower = result.lower()
+
+        # Should contain key terms from the initial idea
+        assert "dashboard" in result_lower, "Requirements should mention 'dashboard' from the initial idea"
+        assert "metrics" in result_lower, "Requirements should mention 'metrics' from the initial idea"
+        assert "reports" in result_lower, "Requirements should mention 'reports' from the initial idea"
+
+        # Should NOT contain generic placeholder content
+        assert "use system" not in result_lower, "Requirements should not contain generic 'use system' placeholder"
+        assert "achieve my goals efficiently" not in result, "Requirements should not contain generic goal placeholder"
+
+        # User story should incorporate the actual feature description - check in the requirements section specifically
+        requirements_section = result[result.find("## Requirements") :] if "## Requirements" in result else result
+        assert (
+            "dashboard to track project metrics and generate automated reports" in requirements_section.lower()
+        ), "User story in requirements section should incorporate the specific feature description"
+
+        # Should have proper structure
+        assert "**User Story:**" in result
+        assert "#### Acceptance Criteria" in result
+        assert "WHEN" in result and "THEN" in result and "SHALL" in result
+
+        # Test with another different idea to ensure it's not hardcoded
+        initial_idea2 = "An API for managing customer orders and inventory synchronization"
+        result2 = generator.generate_requirements(initial_idea2, "order-api")
+
+        result2_lower = result2.lower()
+        assert "api" in result2_lower, "Second test should mention 'api'"
+        assert "orders" in result2_lower, "Second test should mention 'orders'"
+        assert "inventory" in result2_lower, "Second test should mention 'inventory'"
+        assert "dashboard" not in result2_lower, "Second test should not contain content from first test"
+
+        # Verify the user story in the requirements section contains the specific idea
+        requirements_section2 = result2[result2.find("## Requirements") :] if "## Requirements" in result2 else result2
+        assert "api for managing customer orders and inventory synchronization" in requirements_section2.lower(), "Second test user story should incorporate the specific feature description"
+
+    def test_generate_requirements_avoids_generic_fallbacks(self):
+        """
+        Test that requirements generation avoids falling back to generic content.
+
+        This test ensures that regardless of the type of feature idea provided, the system
+        never generates generic placeholder content and always incorporates the user's
+        specific feature description into the requirements.
+        """
+        generator = DocumentGenerator()
+
+        # Test with various types of feature ideas
+        test_cases = ["A mobile app for food delivery tracking", "A machine learning model for fraud detection", "A chat system with real-time messaging", "A file storage service with encryption"]
+
+        for initial_idea in test_cases:
+            result = generator.generate_requirements(initial_idea, "test-feature")
+            result_lower = result.lower()
+
+            # Should not contain generic fallback content
+            assert "use system" not in result_lower, f"Should not contain generic 'use system' for idea: {initial_idea}"
+            assert "achieve my goals efficiently" not in result, f"Should not contain generic goal for idea: {initial_idea}"
+
+            # Should contain the actual initial idea in the user story
+            assert initial_idea.lower() in result_lower, f"Should contain the actual idea '{initial_idea}' in requirements"
+
 
 class TestDocumentGenerationError:
     """Test DocumentGenerationError exception class."""

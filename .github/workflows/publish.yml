@@ -95,15 +95,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ github.event.inputs.version }}
-        release_name: Release v${{ github.event.inputs.version }}
+        tag_name: v${{ steps.get_version.outputs.version }}
+        release_name: Release v${{ steps.get_version.outputs.version }}
         body: |
-          ## spec-server v${{ github.event.inputs.version }}
+          ## spec-server v${{ steps.get_version.outputs.version }}
 
           ### Installation
 
           ```bash
-          pip install spec-server==${{ github.event.inputs.version }}
+          pip install spec-server==${{ steps.get_version.outputs.version }}
           ```
 
           ### Usage

@@ -420,27 +420,31 @@ class DocumentGenerator:
         """Generate requirements sections with user stories and acceptance criteria."""
         requirements = []
 
-        # Generate primary requirement based on main concept
-        primary_actors = concepts["actors"][:2] if concepts["actors"] else ["user"]
-        primary_actions = concepts["actions"][:2] if concepts["actions"] else ["use"]
-        primary_objects = concepts["objects"][:2] if concepts["objects"] else ["system"]
+        # Generate requirements based on the initial idea content
+        # This creates more meaningful requirements that reflect the actual feature request
 
-        req_num = 1
-        for actor in primary_actors:
-            for action in primary_actions:
-                for obj in primary_objects:
-                    user_story = f"As a {actor}, I want to {action} {obj}, so that I can achieve my goals efficiently"
+        # Primary requirement based on the main feature description
+        user_story = f"As a user, I want {initial_idea.lower()}, so that I can benefit from this functionality"
 
-                    # Generate EARS format acceptance criteria
-                    criteria = [
-                        f"WHEN {actor} requests to {action} {obj} THEN the system SHALL provide appropriate functionality",
-                        f"WHEN {actor} interacts with {obj} THEN the system SHALL respond within acceptable time limits",
-                        f"IF {actor} provides invalid input THEN the system SHALL provide clear error messages",
-                    ]
+        # Generate EARS format acceptance criteria based on the feature description
+        criteria = [
+            "WHEN the feature is implemented THEN the system SHALL provide the described functionality",
+            "WHEN users interact with the feature THEN it SHALL work as specified in the initial idea",
+            "WHEN the feature encounters edge cases THEN it SHALL handle them gracefully",
+        ]
 
-                    criteria_text = "\n".join([f"{i+1}. {criterion}" for i, criterion in enumerate(criteria)])
+        # Try to generate more specific criteria based on extracted concepts
+        if concepts["actions"]:
+            action = concepts["actions"][0]
+            criteria.append(f"WHEN users need to {action} THEN the system SHALL support this operation")
 
-                    requirement = f"""### Requirement {req_num}
+        if concepts["objects"]:
+            obj = concepts["objects"][0]
+            criteria.append(f"WHEN working with {obj} THEN the system SHALL maintain data integrity")
+
+        criteria_text = "\n".join([f"{i+1}. {criterion}" for i, criterion in enumerate(criteria)])
+
+        requirement = f"""### Requirement 1
 
 **User Story:** {user_story}
 
@@ -448,16 +452,27 @@ class DocumentGenerator:
 
 {criteria_text}"""
 
-                    requirements.append(requirement)
-                    req_num += 1
+        requirements.append(requirement)
 
-                    # Limit to avoid too many requirements
-                    if req_num > 3:
-                        break
-                if req_num > 3:
-                    break
-            if req_num > 3:
-                break
+        # Generate a second requirement for quality and performance
+        quality_story = "As a user, I want the feature to be reliable and performant, so that it provides a good user experience"
+        quality_criteria = [
+            "WHEN the feature is used THEN it SHALL respond within acceptable time limits",
+            "WHEN errors occur THEN the system SHALL provide clear and helpful error messages",
+            "WHEN the feature is used repeatedly THEN it SHALL maintain consistent behavior",
+        ]
+
+        quality_criteria_text = "\n".join([f"{i+1}. {criterion}" for i, criterion in enumerate(quality_criteria)])
+
+        quality_requirement = f"""### Requirement 2
+
+**User Story:** {quality_story}
+
+#### Acceptance Criteria
+
+{quality_criteria_text}"""
+
+        requirements.append(quality_requirement)
 
         return "\n\n".join(requirements)
 
