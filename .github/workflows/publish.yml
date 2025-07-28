@@ -36,28 +36,36 @@ jobs:
         python -m pip install --upgrade pip
         pip install build twine toml
 
-    - name: Update version in pyproject.toml
-      run: |
-        python -c "
-        import toml
-        with open('pyproject.toml', 'r') as f:
-            data = toml.load(f)
-        data['project']['version'] = '${{ github.event.inputs.version }}'
-        with open('pyproject.toml', 'w') as f:
-            toml.dump(data, f)
-        "
+    # Version update steps disabled - version already set to 0.6.0 in codebase
+    # - name: Update version in pyproject.toml
+    #   run: |
+    #     python -c "
+    #     import toml
+    #     with open('pyproject.toml', 'r') as f:
+    #         data = toml.load(f)
+    #     data['project']['version'] = '${{ github.event.inputs.version }}'
+    #     with open('pyproject.toml', 'w') as f:
+    #         toml.dump(data, f)
+    #     "
 
-    - name: Update version in __init__.py
-      run: |
-        sed -i 's/__version__ = ".*"/__version__ = "v${{ github.event.inputs.version }}"/' src/spec_server/__init__.py
+    # - name: Update version in __init__.py
+    #   run: |
+    #     sed -i 's/__version__ = ".*"/__version__ = "v${{ github.event.inputs.version }}"/' src/spec_server/__init__.py
 
-    - name: Commit version update
+    # - name: Commit version update
+    #   run: |
+    #     git config --local user.email "action@github.com"
+    #     git config --local user.name "GitHub Action"
+    #     git add pyproject.toml src/spec_server/__init__.py
+    #     git commit -m "Bump version to ${{ github.event.inputs.version }}" || exit 0
+    #     git push
+
+    - name: Extract version from pyproject.toml
+      id: get_version
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add pyproject.toml src/spec_server/__init__.py
-        git commit -m "Bump version to ${{ github.event.inputs.version }}" || exit 0
-        git push
+        VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Detected version: $VERSION"
 
     - name: Run tests
       run: |
