@@ -224,7 +224,7 @@ Great! I'll mark the requirements as approved so we can move to the design phase
 After thorough design discussion:
 
 ```
-Based on our design discussion, I'll document the technical approach for this feature.
+Based on our design discussion, I'll document the technical approach for this feature using the enhanced Intent/Goals/Logic format.
 
 <function_calls>
 <invoke name="update_spec_document">
@@ -233,27 +233,51 @@ Based on our design discussion, I'll document the technical approach for this fe
 <parameter name="content">
 # Design for [Feature Name]
 
-## Architecture Overview
-[High-level description of the solution architecture]
+## Overview
+[High-level description of the solution architecture and design decisions]
 
-## Components
-- [Component 1]: [Description]
-- [Component 2]: [Description]
+## Architecture
+[Overall system architecture and integration points]
+
+## Components and Interfaces
+
+### [Component Name]
+
+**Intent**: [Brief description of what this component does and why it exists]
+
+**Goals**:
+- [Specific objective this component achieves]
+- [Another objective this component achieves]
+- [Additional objectives as needed]
+
+**Logic**: [Detailed explanation of how this component works, its implementation approach, and technical details]
+
+### [Interface Name]
+
+**Intent**: [Brief description of what this interface provides and its purpose]
+
+**Goals**:
+- [Specific capability this interface enables]
+- [Another capability this interface enables]
+- [Additional capabilities as needed]
+
+**Logic**: [Detailed explanation of the interface design, methods, parameters, and usage patterns]
 
 ## Data Models
-[Description of data structures and relationships]
 
-## Interfaces
-[API definitions, function signatures, etc.]
+### [Data Model Name]
+
+**Intent**: [Brief description of what this data model represents and its role]
+
+**Goals**:
+- [Specific data requirement this model addresses]
+- [Another data requirement this model addresses]
+- [Additional requirements as needed]
+
+**Logic**: [Detailed explanation of the data structure, relationships, validation rules, and usage patterns]
 
 ## Error Handling
 [Approach to error handling and recovery]
-
-## Security Considerations
-[Security measures and considerations]
-
-## Performance Considerations
-[Performance requirements and optimizations]
 
 ## Testing Strategy
 [Approach to testing the implementation]
@@ -297,36 +321,40 @@ Great! I'll mark the design as approved so we can move to defining implementatio
 After implementation strategy discussion:
 
 ```
-Based on our implementation discussion, I'll break down the work into specific tasks.
+Based on our implementation discussion, I'll break down the work into specific tasks. The system will automatically format these and link them to requirements.
 
 <function_calls>
 <invoke name="update_spec_document">
 <parameter name="feature_name">feature-name</parameter>
 <parameter name="document_type">tasks</parameter>
 <parameter name="content">
-# Implementation Tasks for [Feature Name]
+# Implementation Plan
 
-## Setup and Infrastructure
-- [ ] 1. [Setup task]
-- [ ] 2. [Infrastructure task]
+- [ ] 1. [Primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
 
-## Core Functionality
-- [ ] 3. [Core feature task]
-  - [ ] 3.1. [Sub-task]
-  - [ ] 3.2. [Sub-task]
-- [ ] 4. [Core feature task]
+- [ ] 2. [Second primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
 
-## Testing
-- [ ] 5. [Unit test task]
-- [ ] 6. [Integration test task]
-
-## Documentation
-- [ ] 7. [Documentation task]
+- [ ] 3. [Third primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
 </parameter>
 <parameter name="phase_approval">false</parameter>
 </invoke>
 </function_calls>
 ```
+
+Note: The system will automatically:
+- Format tasks into the correct structure
+- Add requirements references based on content analysis
+- Move any non-task content to appropriate documents
+- Validate task completion against requirements and design
 
 ### Reviewing Tasks
 
@@ -356,6 +384,39 @@ Great! I'll mark the tasks as approved so we can begin implementation.
 </invoke>
 </function_calls>
 ```
+
+## Enhanced Features
+
+### Enhanced Design Format
+
+The spec-server now uses an enhanced design format that structures all technical elements with Intent/Goals/Logic sections:
+
+- **Intent**: Brief description of what the element does and why it exists
+- **Goals**: Specific, measurable objectives the element achieves (bullet points)
+- **Logic**: Detailed explanation of how the element works and its implementation approach
+
+This format applies to:
+- Components and services
+- Interfaces and APIs
+- Data models and structures
+- Architectural elements
+
+When creating design documents, always use this structure for technical elements. The system will automatically detect and enhance existing designs that lack this format.
+
+### Auto-Format Task Lists
+
+The spec-server automatically formats task lists to ensure consistency:
+
+- **Automatic formatting**: Tasks are reformatted into the correct structure during read/create/update operations
+- **Requirements linking**: Tasks are automatically linked to relevant requirements based on content analysis
+- **Content redistribution**: Non-task content is moved to appropriate documents (requirements or design)
+- **Completion validation**: Task completion is validated against requirements and design
+
+When creating tasks:
+- Use a flat numbered list format (no nested numbering like 1.1, 1.2)
+- Include detailed sub-tasks as bullet points under main tasks
+- Focus only on coding and implementation tasks
+- Let the system handle formatting and requirements linking automatically
 
 ## Best Practices for LLMs
 
@@ -387,22 +448,38 @@ What's more important for your specific needs?
 This design decision directly supports the requirement you mentioned about [specific requirement]. It ensures that [benefit].
 ```
 
-### Use Visualizations When Helpful
+### Use Enhanced Design Format
 
 ```
-Here's a simple diagram to illustrate the proposed architecture:
+For this component, let me structure it using the Intent/Goals/Logic format:
 
-```
-[ASCII diagram or description of a diagram]
-```
+**Intent**: This component serves as the main data processor for user requests.
 
-Would this approach meet your needs?
+**Goals**:
+- Validate incoming data according to business rules
+- Transform data into the required internal format
+- Handle errors gracefully with meaningful messages
+- Maintain high performance under load
+
+**Logic**: The component will implement a pipeline pattern where data flows through validation, transformation, and error handling stages. It will use dependency injection for testability and include comprehensive logging for debugging.
+
+Does this structure clearly communicate the component's purpose and implementation approach?
 ```
 
 ### Acknowledge Uncertainty
 
 ```
 I'm not entirely certain about [aspect]. Could you provide more information about [specific question] so we can make a more informed decision?
+```
+
+### Leverage Automatic Features
+
+```
+I'll create the tasks now, and the system will automatically format them and link them to the relevant requirements we discussed. If any content doesn't belong in tasks, it will be moved to the appropriate document.
+```
+
+```
+The system will automatically enhance this design with the Intent/Goals/Logic format for any technical elements that need it. This ensures consistent documentation structure across all your specs.
 ```
 
 ## Document Templates
@@ -436,27 +513,51 @@ I'm not entirely certain about [aspect]. Could you provide more information abou
 ```markdown
 # Design for [Feature Name]
 
-## Architecture Overview
-[High-level description of the solution architecture]
+## Overview
+[High-level description of the solution architecture and design decisions]
 
-## Components
-- [Component 1]: [Description]
-- [Component 2]: [Description]
+## Architecture
+[Overall system architecture and integration points]
+
+## Components and Interfaces
+
+### [Component Name]
+
+**Intent**: [Brief description of what this component does and why it exists]
+
+**Goals**:
+- [Specific objective this component achieves]
+- [Another objective this component achieves]
+- [Additional objectives as needed]
+
+**Logic**: [Detailed explanation of how this component works, its implementation approach, and technical details]
+
+### [Interface Name]
+
+**Intent**: [Brief description of what this interface provides and its purpose]
+
+**Goals**:
+- [Specific capability this interface enables]
+- [Another capability this interface enables]
+- [Additional capabilities as needed]
+
+**Logic**: [Detailed explanation of the interface design, methods, parameters, and usage patterns]
 
 ## Data Models
-[Description of data structures and relationships]
 
-## Interfaces
-[API definitions, function signatures, etc.]
+### [Data Model Name]
+
+**Intent**: [Brief description of what this data model represents and its role]
+
+**Goals**:
+- [Specific data requirement this model addresses]
+- [Another data requirement this model addresses]
+- [Additional requirements as needed]
+
+**Logic**: [Detailed explanation of the data structure, relationships, validation rules, and usage patterns]
 
 ## Error Handling
 [Approach to error handling and recovery]
-
-## Security Considerations
-[Security measures and considerations]
-
-## Performance Considerations
-[Performance requirements and optimizations]
 
 ## Testing Strategy
 [Approach to testing the implementation]
@@ -465,28 +566,41 @@ I'm not entirely certain about [aspect]. Could you provide more information abou
 ### Tasks Document Template
 
 ```markdown
-# Implementation Tasks for [Feature Name]
+# Implementation Plan
 
-## Setup and Infrastructure
-- [ ] 1. [Setup task]
-- [ ] 2. [Infrastructure task]
+- [ ] 1. [Primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
+  - _Requirements: 1.1, 1.2, 2.1_
 
-## Core Functionality
-- [ ] 3. [Core feature task]
-  - [ ] 3.1. [Sub-task]
-  - [ ] 3.2. [Sub-task]
-- [ ] 4. [Core feature task]
+- [ ] 2. [Second primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
+  - _Requirements: 1.3, 2.2, 3.1_
 
-## Testing
-- [ ] 5. [Unit test task]
-- [ ] 6. [Integration test task]
+- [ ] 3. [Third primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
+  - _Requirements: 2.1, 2.3, 3.2_
 
-## Documentation
-- [ ] 7. [Documentation task]
+## Notes:
+- Tasks are automatically formatted with proper structure
+- Requirements references are automatically added based on content analysis
+- Non-task content is automatically moved to appropriate documents
+- Task completion is validated against requirements and design
 ```
 
 ## Conclusion
 
-By following this conversational approach, LLMs can help users thoroughly explore requirements and design considerations before proceeding to implementation. This ensures that the resulting specifications are well-thought-out and aligned with user needs, leading to more successful implementations.
+By following this conversational approach and leveraging the enhanced features, LLMs can help users thoroughly explore requirements and design considerations before proceeding to implementation. The spec-server's automatic formatting and enhancement features ensure consistency while the conversational approach ensures that the resulting specifications are well-thought-out and aligned with user needs.
 
-Remember that the goal is not just to create documents, but to facilitate a thoughtful process that results in clear understanding and direction for implementation.
+Key benefits of the enhanced workflow:
+- **Enhanced Design Format**: Provides clear Intent/Goals/Logic structure for all technical elements
+- **Auto-Format Task Lists**: Ensures consistent task formatting and automatic requirements linking
+- **Content Organization**: Automatically moves content to appropriate documents
+- **Validation**: Task completion is validated against requirements and design
+
+Remember that the goal is not just to create documents, but to facilitate a thoughtful process that results in clear understanding and direction for implementation, while leveraging automation to ensure consistency and quality.

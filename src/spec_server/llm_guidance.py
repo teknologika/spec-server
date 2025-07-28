@@ -130,30 +130,57 @@ def get_phase_guidance_content(phase: str = "general") -> Dict[str, Any]:
             "What APIs or interfaces will be needed?",
             "How will we handle error cases?",
             "What about security considerations?",
+            "What is the intent behind each major component?",
+            "What are the specific goals each component should achieve?",
+            "How should each component be implemented (the logic)?",
         ],
         "template": """# Design for [Feature Name]
 
-## Architecture Overview
-[High-level description of the solution architecture]
+## Overview
+[High-level description of the solution architecture and design decisions]
 
-## Components
-- [Component 1]: [Description]
-- [Component 2]: [Description]
+## Architecture
+[Overall system architecture and integration points]
+
+## Components and Interfaces
+
+### [Component Name]
+
+**Intent**: [Brief description of what this component does and why it exists]
+
+**Goals**:
+- [Specific objective this component achieves]
+- [Another objective this component achieves]
+- [Additional objectives as needed]
+
+**Logic**: [Detailed explanation of how this component works, its implementation approach, and technical details]
+
+### [Interface Name]
+
+**Intent**: [Brief description of what this interface provides and its purpose]
+
+**Goals**:
+- [Specific capability this interface enables]
+- [Another capability this interface enables]
+- [Additional capabilities as needed]
+
+**Logic**: [Detailed explanation of the interface design, methods, parameters, and usage patterns]
 
 ## Data Models
-[Description of data structures and relationships]
 
-## Interfaces
-[API definitions, function signatures, etc.]
+### [Data Model Name]
+
+**Intent**: [Brief description of what this data model represents and its role]
+
+**Goals**:
+- [Specific data requirement this model addresses]
+- [Another data requirement this model addresses]
+- [Additional requirements as needed]
+
+**Logic**: [Detailed explanation of the data structure, relationships, validation rules, and usage patterns]
 
 ## Error Handling
 [Approach to error handling and recovery]
-
-## Security Considerations
-[Security measures and considerations]
-
-## Performance Considerations
-[Performance requirements and optimizations]
 
 ## Testing Strategy
 [Approach to testing the implementation]""",
@@ -164,6 +191,10 @@ def get_phase_guidance_content(phase: str = "general") -> Dict[str, Any]:
             "Consider security from the beginning",
             "Document interfaces clearly",
             "Include error handling strategy",
+            "Use Intent/Goals/Logic structure for all technical elements",
+            "Clearly state the intent (purpose) of each component",
+            "List specific, measurable goals for each element",
+            "Provide detailed implementation logic and approach",
         ],
         "conversation_starters": [
             "Now that we have clear requirements, let's discuss how to implement this feature.",
@@ -185,24 +216,25 @@ def get_phase_guidance_content(phase: str = "general") -> Dict[str, Any]:
             "How about integration tests?",
             "Are there specific edge cases to test?",
         ],
-        "template": """# Implementation Tasks for [Feature Name]
+        "template": """# Implementation Plan
 
-## Setup and Infrastructure
-- [ ] 1. [Setup task]
-- [ ] 2. [Infrastructure task]
+- [ ] 1. [Primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
+  - _Requirements: 1.1, 1.2, 2.1_
 
-## Core Functionality
-- [ ] 3. [Core feature task]
-  - [ ] 3.1. [Sub-task]
-  - [ ] 3.2. [Sub-task]
-- [ ] 4. [Core feature task]
+- [ ] 2. [Second primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
+  - _Requirements: 1.3, 2.2, 3.1_
 
-## Testing
-- [ ] 5. [Unit test task]
-- [ ] 6. [Integration test task]
-
-## Documentation
-- [ ] 7. [Documentation task]""",
+- [ ] 3. [Third primary task description]
+  - [Detailed sub-task or implementation note]
+  - [Another implementation detail]
+  - [Additional context or requirements]
+  - _Requirements: 2.1, 2.3, 3.2_""",
         "best_practices": [
             "Break down tasks into manageable chunks",
             "Include testing tasks explicitly",
@@ -210,12 +242,19 @@ def get_phase_guidance_content(phase: str = "general") -> Dict[str, Any]:
             "Prioritize tasks appropriately",
             "Include documentation tasks",
             "Reference requirements in task descriptions",
+            "Use the flat numbered list format (no nested numbering)",
+            "Include detailed sub-tasks as bullet points under main tasks",
+            "Add requirements references at the end of each task",
+            "Focus only on coding and implementation tasks",
+            "Let the system automatically format and link requirements",
         ],
         "conversation_starters": [
             "Let's talk about how to break down the implementation into specific tasks.",
             "What do you think should be the first steps in implementing this feature?",
             "Are there any dependencies between components that will affect the task order?",
             "What testing approach should we use for this feature?",
+            "The system will automatically format tasks and link them to requirements - let's focus on the implementation steps.",
+            "Remember that tasks will be automatically validated against requirements when marked complete.",
         ],
     }
 

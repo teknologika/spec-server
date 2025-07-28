@@ -13,9 +13,12 @@ spec-server helps AI assistants and developers transform rough feature ideas int
 ## Features
 
 - **Systematic Workflow**: Enforced progression through Requirements → Design → Tasks phases
+- **Enhanced Design Format**: Intent/Goals/Logic structure for all technical elements
+- **Auto-Format Task Lists**: Automatic formatting and requirements linking for tasks
+- **LLM Guidance**: Built-in guidance system for AI assistants with conversation templates
 - **MCP Integration**: Works with any MCP-compatible AI assistant
 - **File References**: Support for `#[[file:path]]` syntax to include external specifications
-- **Task Management**: Hierarchical task tracking with status updates
+- **Task Management**: Hierarchical task tracking with status updates and completion validation
 - **Multiple Transports**: Support for both stdio and SSE (Server-Sent Events) transport methods
 - **Validation**: Built-in validation for document formats and workflow transitions
 
@@ -109,6 +112,49 @@ Remove a specification entirely including all documents.
 **Parameters:**
 - `feature_name` (string): Target spec identifier
 
+### `get_full_guidance`
+Get the complete LLM guidance document for effective spec-server usage.
+
+**Returns:** Complete guidance on conversational approach, enhanced design format, and auto-format task lists.
+
+### `get_guidance`
+Get phase-specific guidance for requirements, design, or tasks phases.
+
+**Parameters:**
+- `phase` (string): "requirements" | "design" | "tasks" | "general"
+
+**Returns:** Phase-specific conversation starters, templates, and best practices.
+
+## LLM Guidance System
+
+spec-server includes a comprehensive guidance system designed to help AI assistants use the tool effectively through conversational interactions with users.
+
+### Accessing Guidance
+
+**For AI Assistants:**
+- Use `get_full_guidance()` to access the complete guidance document
+- Use `get_guidance(phase="requirements|design|tasks")` for phase-specific guidance
+- Guidance includes conversation starters, templates, and best practices
+
+**For Developers:**
+- Guidance is available at [`docs/llm-guidance.md`](docs/llm-guidance.md)
+- Automatically accessible through MCP tools when using spec-server
+- Always up-to-date with the installed version
+
+### Enhanced Features
+
+**Enhanced Design Format:**
+- All technical elements use Intent/Goals/Logic structure
+- Intent: Brief description of purpose
+- Goals: Specific, measurable objectives
+- Logic: Detailed implementation approach
+
+**Auto-Format Task Lists:**
+- Tasks are automatically formatted into consistent structure
+- Requirements references are automatically added
+- Non-task content is moved to appropriate documents
+- Task completion is validated against requirements and design
+
 ## Workflow
 
 ### 1. Requirements Phase
@@ -118,14 +164,15 @@ Remove a specification entirely including all documents.
 
 ### 2. Design Phase
 - Generate comprehensive technical design based on approved requirements
+- Use Intent/Goals/Logic structure for all technical elements
 - Include sections: Overview, Architecture, Components, Data Models, Error Handling, Testing
 - Conduct research and incorporate findings into design decisions
 - Must receive explicit approval before advancing to tasks phase
 
 ### 3. Tasks Phase
 - Create actionable implementation tasks focused on code development
-- Format as numbered checkboxes with hierarchical structure
-- Reference specific requirements and ensure test-driven development
+- System automatically formats tasks and links to requirements
+- Tasks are validated against requirements and design upon completion
 - Tasks ready for execution by coding agents
 
 ## File Structure
@@ -133,13 +180,18 @@ Remove a specification entirely including all documents.
 ```
 specs/
 ├── feature-name-1/
-│   ├── requirements.md
-│   ├── design.md
-│   └── tasks.md
+│   ├── requirements.md          # EARS format requirements
+│   ├── design.md               # Intent/Goals/Logic format design
+│   └── tasks.md                # Auto-formatted tasks with requirements links
 ├── feature-name-2/
 │   ├── requirements.md
 │   └── design.md
-└── .spec-metadata.json
+├── completed/                   # Automatically moved completed specs
+│   └── old-feature/
+│       ├── requirements.md
+│       ├── design.md
+│       └── tasks.md
+└── .spec-metadata.json         # Spec tracking and progress metadata
 ```
 
 ## File References
@@ -285,6 +337,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - GitHub Issues: [https://github.com/teknologika/spec-server/issues](https://github.com/teknologika/spec-server/issues)
+- LLM Guidance: [docs/llm-guidance.md](docs/llm-guidance.md)
 - Documentation: [Coming Soon]
 
 ## Roadmap
