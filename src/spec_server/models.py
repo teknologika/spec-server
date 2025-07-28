@@ -13,7 +13,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 class Phase(Enum):
@@ -507,7 +507,7 @@ class TechnicalElement(BaseModel):
 
     @field_validator("line_end")
     @classmethod
-    def validate_line_end(cls, v: int, info) -> int:
+    def validate_line_end(cls, v: int, info: ValidationInfo) -> int:
         """Validate that line_end is greater than or equal to line_start."""
         if hasattr(info, "data") and "line_start" in info.data:
             line_start = info.data["line_start"]
@@ -527,7 +527,7 @@ class FormatAnalysisResult(BaseModel):
 
     @field_validator("elements_with_format")
     @classmethod
-    def validate_elements_with_format(cls, v: int, info) -> int:
+    def validate_elements_with_format(cls, v: int, info: ValidationInfo) -> int:
         """Validate that elements_with_format doesn't exceed total_elements."""
         if hasattr(info, "data") and "total_elements" in info.data:
             total_elements = info.data["total_elements"]
@@ -544,7 +544,7 @@ class EnhancedDesignTemplate(DocumentTemplate):
     enhanced_format_enabled: bool = Field(default=True, description="Whether enhanced formatting is enabled")
     template_config: TemplateConfig = Field(default_factory=TemplateConfig, description="Configuration for template customization")
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         """Initialize with enhanced design template defaults."""
         if "template_type" not in data:
             data["template_type"] = "design"

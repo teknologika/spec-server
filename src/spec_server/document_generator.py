@@ -218,6 +218,88 @@ class DocumentGenerator:
                 },
             )
 
+    def format_requirements_document(self, content: str) -> str:
+        """
+        Format a requirements document to ensure proper structure and numbering.
+
+        Args:
+            content: Raw requirements document content
+
+        Returns:
+            Properly formatted requirements document
+
+        Raises:
+            DocumentGenerationError: If formatting fails
+        """
+        if not content.strip():
+            raise DocumentGenerationError(
+                "Requirements content cannot be empty",
+                error_code="EMPTY_REQUIREMENTS",
+                details={"content": content},
+            )
+
+        try:
+            # Parse the existing content to extract components
+            lines = content.split("\n")
+
+            # Find or create document structure
+            title = "# Requirements Document"
+            introduction = ""
+
+            # Parse existing content
+            current_section = None
+            intro_lines = []
+            req_lines = []
+
+            for line in lines:
+                line_stripped = line.strip()
+
+                if line_stripped.startswith("# Requirements Document"):
+                    current_section = "title"
+                    continue
+                elif line_stripped.startswith("## Introduction"):
+                    current_section = "introduction"
+                    continue
+                elif line_stripped.startswith("## Requirements"):
+                    current_section = "requirements"
+                    continue
+                elif line_stripped.startswith("### Requirement"):
+                    current_section = "requirements"
+                    req_lines.append(line)
+                elif current_section == "introduction" and line_stripped:
+                    intro_lines.append(line)
+                elif current_section == "requirements":
+                    req_lines.append(line)
+
+            # Build introduction
+            if intro_lines:
+                introduction = "\n".join(intro_lines).strip()
+            else:
+                introduction = "This document defines the requirements for the feature."
+
+            # Parse and reformat requirements
+            formatted_requirements = self._parse_and_format_requirements("\n".join(req_lines))
+
+            # Construct the final document
+            document = f"""{title}
+
+## Introduction
+
+{introduction}
+
+## Requirements
+
+{formatted_requirements}"""
+
+            return document
+
+        except Exception as e:
+            raise DocumentGenerationError(
+                f"Failed to format requirements document: {str(e)}",
+                error_code="REQUIREMENTS_FORMATTING_FAILED",
+                details={"content": content[:200], "error": str(e)},
+            )
+
     def validate_document_format(self, doc_type: str, content: str) -> bool:
         """
         Validate that a document follows the expected format.
@@ -378,6 +460,118 @@ class DocumentGenerator:
                 break
 
         return "\n\n".join(requirements)
+
+    def _parse_and_format_requirements(self, content: str) -> str:
+        """Parse existing requirements content and reformat with proper numbering."""
+        if not content.strip():
+            return ""
+
+        # Extract requirement blocks
+        requirements = []
+        current_requirement = None
+        current_lines: List[str] = []
+
+        lines = content.split("\n")
+        req_counter = 1
+
+        for line in lines:
+            line_stripped = line.strip()
+
+            # Check if this is a requirement header
+            if line_stripped.startswith("### Requirement") or line_stripped.startswith("## Requirement"):
+                # Save previous requirement if exists
+                if current_requirement is not None and current_lines:
+                    requirements.append(self._format_single_requirement(current_requirement, current_lines, req_counter - 1))
+
+                # Start new requirement
+                current_requirement = line_stripped
+                current_lines = []
+                req_counter += 1
+            elif (
+                line_stripped.startswith("**User Story:**")
+                or line_stripped.startswith("#### Acceptance Criteria")
+                or line_stripped.startswith("1.")
+                or line_stripped.startswith("2.")
+                or line_stripped.startswith("3.")
+                or line_stripped.startswith("4.")
+                or line_stripped.startswith("5.")
+            ):
+                current_lines.append(line)
+            elif current_requirement is not None and line_stripped:
+                current_lines.append(line)
+            elif current_requirement is not None:
+                current_lines.append(line)  # Keep blank lines within requirements
+
+        # Handle last requirement
+        if current_requirement is not None and current_lines:
+            requirements.append(self._format_single_requirement(current_requirement, current_lines, req_counter - 1))
+
+        # If no structured requirements found, try to extract from free text
+        if not requirements and content.strip():
+            # Create a basic requirement from the content
+            requirements.append(
+                """### Requirement 1
+
+**User Story:** As a user, I want the system to meet the specified requirements, so that the feature works as intended.
+
+#### Acceptance Criteria
+
+1. WHEN the system is implemented THEN it SHALL meet all specified requirements
+2. WHEN users interact with the system THEN it SHALL provide expected functionality
+3. IF invalid input is provided THEN the system SHALL handle errors gracefully"""
+            )
+
+        return "\n\n".join(requirements)
+
+    def _format_single_requirement(self, header: str, content_lines: List[str], req_num: int) -> str:
+        """Format a single requirement with proper numbering and structure."""
+        # Extract user story and acceptance criteria
+        user_story = ""
+        criteria_lines = []
+        current_section = None
+
+        for line in content_lines:
+            line_stripped = line.strip()
+
+            if line_stripped.startswith("**User Story:**"):
+                current_section = "user_story"
+                user_story = line_stripped.replace("**User Story:**", "").strip()
+            elif line_stripped.startswith("#### Acceptance Criteria"):
+                current_section = "criteria"
+            elif current_section == "user_story" and line_stripped and not line_stripped.startswith("####"):
+                user_story += " " + line_stripped
+            elif (
+                current_section == "criteria"
+                and line_stripped
+                and (line_stripped[0].isdigit() or line_stripped.startswith("WHEN") or line_stripped.startswith("IF") or line_stripped.startswith("GIVEN"))
+            ):
+                # Clean up numbering
+                clean_line = re.sub(r"^\d+\.\s*", "", line_stripped)
+                criteria_lines.append(clean_line)
+
+        # Ensure user story exists
+        if not user_story:
+            user_story = "As a user, I want this requirement to be met, so that the system works correctly."
+
+        # Ensure criteria exist
+        if not criteria_lines:
+            criteria_lines = ["WHEN the requirement is implemented THEN the system SHALL function as specified", "WHEN users interact with the feature THEN it SHALL provide expected behavior"]
+
+        # Format criteria with proper numbering
+        formatted_criteria = []
+        for i, criterion in enumerate(criteria_lines, 1):
+            formatted_criteria.append(f"{i}. {criterion}")
+
+        criteria_text = "\n".join(formatted_criteria)
+
+        # Return properly formatted requirement
+        return f"""### Requirement {req_num}
+
+**User Story:** {user_story}
+
+#### Acceptance Criteria
+
+{criteria_text}"""
 
     def _parse_requirements(self, requirements: str) -> Dict[str, List]:
         """Parse requirements document to extract key information."""
@@ -819,7 +1013,7 @@ All errors include:
             # Fall back to original content if enhancement fails
             return data_models_content
 
-    def _replace_element_in_content(self, content: str, element, formatted_element: str) -> str:
+    def _replace_element_in_content(self, content: str, element: Any, formatted_element: str) -> str:
         """
         Replace an element's content in the document with the formatted version.
 

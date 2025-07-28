@@ -7,7 +7,7 @@ sections for automatic enhancement.
 """
 
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from .models import DEFAULT_ENHANCED_DESIGN_TEMPLATE, EnhancedDesignTemplate, FormatAnalysisResult, TechnicalElement
 
@@ -15,7 +15,7 @@ from .models import DEFAULT_ENHANCED_DESIGN_TEMPLATE, EnhancedDesignTemplate, Fo
 class DesignFormatDetectionError(Exception):
     """Exception raised when design format detection fails."""
 
-    def __init__(self, message: str, error_code: str = "DETECTION_ERROR", details: Dict = None):
+    def __init__(self, message: str, error_code: str = "DETECTION_ERROR", details: Optional[Dict] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code
@@ -28,7 +28,7 @@ class DesignFormatDetector:
     lack Intent/Goals/Logic sections for automatic enhancement.
     """
 
-    def __init__(self, template: EnhancedDesignTemplate = None):
+    def __init__(self, template: Optional[EnhancedDesignTemplate] = None):
         """Initialize the detector with an enhanced design template."""
         self.template = template or DEFAULT_ENHANCED_DESIGN_TEMPLATE
         self.intent_patterns = [r"\*\*Intent\*\*:", r"## Intent", r"### Intent", r"\*\*Purpose\*\*:", r"## Purpose", r"### Purpose"]
@@ -155,7 +155,7 @@ class DesignFormatDetector:
             return "All technical elements already have Intent/Goals/Logic format."
 
         # Count elements by type
-        type_counts = {}
+        type_counts: Dict[str, int] = {}
         missing_sections = {"intent": 0, "goals": 0, "logic": 0}
 
         for element in elements:

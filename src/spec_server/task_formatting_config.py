@@ -162,7 +162,7 @@ class TaskFormattingConfigManager:
             self._logger.error(f"Failed to save configuration: {e}")
             raise
 
-    def update_config(self, **kwargs) -> TaskFormattingConfig:
+    def update_config(self, **kwargs: Any) -> TaskFormattingConfig:
         """Update specific configuration values."""
         current_config = self.load_config()
         config_dict = current_config.to_dict()
@@ -199,7 +199,7 @@ def get_config() -> TaskFormattingConfig:
     return get_config_manager().load_config()
 
 
-def update_config(**kwargs) -> TaskFormattingConfig:
+def update_config(**kwargs: Any) -> TaskFormattingConfig:
     """Update task formatting configuration."""
     return get_config_manager().update_config(**kwargs)
 

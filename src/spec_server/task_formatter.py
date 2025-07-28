@@ -163,7 +163,7 @@ class BasicTaskFormatter(TaskFormatter):
                         raise TaskFormattingException(error, e)
 
             # Classify content blocks if content redistribution is enabled
-            moved_content = {"requirements": [], "design": []}
+            moved_content: Dict[str, List[ContentBlock]] = {"requirements": [], "design": []}
             task_blocks = []
 
             if self.config.content_redistribution_enabled:
@@ -173,7 +173,7 @@ class BasicTaskFormatter(TaskFormatter):
                     # Separate content that should be moved
                     for block in blocks:
                         if block.suggested_location != "tasks" and block.confidence > self.config.classification_confidence_threshold:
-                            moved_content[block.suggested_location].append(block.content)
+                            moved_content[block.suggested_location].append(block)
                         else:
                             task_blocks.append(block)
 
@@ -218,9 +218,12 @@ class BasicTaskFormatter(TaskFormatter):
             processing_time = time.time() - start_time
             record_operation("format_task_document", len(errors) == 0, processing_time)
 
+            # Convert ContentBlock objects to strings for FormattingResult
+            moved_content_strings = {doc_type: [block.content for block in blocks] for doc_type, blocks in moved_content.items()}
+
             return FormattingResult(
                 formatted_tasks=formatted_tasks,
-                moved_content=moved_content,
+                moved_content=moved_content_strings,
                 requirements_added=requirements_added,
                 changes_made=changes_made,
                 errors=errors,

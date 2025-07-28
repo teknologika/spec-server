@@ -15,7 +15,7 @@ class LLMTaskCompletionValidator:
     by comparing implementation against requirements and design.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the LLM task completion validator."""
         pass
 

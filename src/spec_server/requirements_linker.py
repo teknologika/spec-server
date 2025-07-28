@@ -17,7 +17,7 @@ class RequirementsLinker:
     are relevant to each task and generates appropriate requirement references.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the RequirementsLinker."""
         # Pattern to match requirement numbers like "1.1", "2.3", etc.
         self.requirement_pattern = re.compile(r"(\d+\.\d+)\s*[:-]?\s*(.+?)(?=\n\d+\.\d+|\n#|$)", re.DOTALL)
@@ -101,7 +101,7 @@ class RequirementsLinker:
         # Also try to find requirements in different formats
         lines = content.split("\n")
         current_req_id = None
-        current_content = []
+        current_content: List[str] = []
 
         for line in lines:
             line = line.strip()

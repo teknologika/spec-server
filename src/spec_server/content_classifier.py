@@ -14,7 +14,7 @@ class ContentClassifier:
     Analyzes content blocks to determine appropriate document placement.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the ContentClassifier."""
         self.task_keywords = [
             "implement",
@@ -69,7 +69,7 @@ class ContentClassifier:
         blocks = []
         lines = content.split("\n")
 
-        current_block = []
+        current_block: List[str] = []
         current_line_start = 1
 
         for line_num, line in enumerate(lines, 1):
@@ -131,7 +131,7 @@ class ContentClassifier:
             "design": design_score,
         }
 
-        best_type = max(scores, key=scores.get)
+        best_type = max(scores, key=lambda x: scores[x])
         confidence = scores[best_type]
 
         suggested_location = {
@@ -161,4 +161,4 @@ class ContentClassifier:
 
     def _is_task_line(self, line: str) -> bool:
         """Check if line represents a task."""
-        return re.match(r"^\s*-\s*\[[\sx-]\]\s*", line) or re.match(r"^\s*\d+(?:\.\d+)*\.\s*", line)
+        return bool(re.match(r"^\s*-\s*\[[\sx-]\]\s*", line) or re.match(r"^\s*\d+(?:\.\d+)*\.\s*", line))

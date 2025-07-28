@@ -16,7 +16,7 @@ from .models import DEFAULT_ENHANCED_DESIGN_TEMPLATE, DesignElementTemplate, Enh
 class DesignTemplateManagerError(Exception):
     """Exception raised when design template management fails."""
 
-    def __init__(self, message: str, error_code: str = "TEMPLATE_MANAGER_ERROR", details: Dict = None):
+    def __init__(self, message: str, error_code: str = "TEMPLATE_MANAGER_ERROR", details: Optional[Dict] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code

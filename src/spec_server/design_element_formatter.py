@@ -7,7 +7,7 @@ while preserving existing content.
 """
 
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from .models import DEFAULT_ENHANCED_DESIGN_TEMPLATE, DesignElementTemplate, EnhancedDesignTemplate, TechnicalElement
 
@@ -15,7 +15,7 @@ from .models import DEFAULT_ENHANCED_DESIGN_TEMPLATE, DesignElementTemplate, Enh
 class DesignElementFormattingError(Exception):
     """Exception raised when design element formatting fails."""
 
-    def __init__(self, message: str, error_code: str = "FORMATTING_ERROR", details: Dict = None):
+    def __init__(self, message: str, error_code: str = "FORMATTING_ERROR", details: Optional[Dict] = None):
         super().__init__(message)
         self.message = message
         self.error_code = error_code
@@ -28,7 +28,7 @@ class DesignElementFormatter:
     Intent/Goals/Logic sections while preserving existing content.
     """
 
-    def __init__(self, template: EnhancedDesignTemplate = None):
+    def __init__(self, template: Optional[EnhancedDesignTemplate] = None):
         """Initialize the formatter with an enhanced design template."""
         self.template = template or DEFAULT_ENHANCED_DESIGN_TEMPLATE
 

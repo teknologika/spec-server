@@ -17,7 +17,7 @@ class TaskParser:
     task hierarchy, status, and existing requirements references.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the TaskParser."""
         # Regex patterns for different task formats
         self.checkbox_pattern = re.compile(r"^(\s*)-\s*\[([^\]]*)\]\s*(.+)", re.MULTILINE)
@@ -78,6 +78,8 @@ class TaskParser:
         numbered_match = self.numbered_pattern.match(line)
         if numbered_match:
             indent, identifier, description = numbered_match.groups()
+            if not identifier:  # Safety check
+                return None
             requirements_refs = self._extract_requirements(description)
 
             return TaskItem(

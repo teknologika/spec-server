@@ -184,8 +184,15 @@ class MCPTools:
             else:  # tasks
                 file_path = spec.get_tasks_path()
 
-            # Apply task formatting if this is a tasks document before writing
-            if document_type == "tasks":
+            # Apply document-specific formatting before writing
+            if document_type == "requirements":
+                try:
+                    # Format requirements document to ensure proper structure and numbering
+                    content = self.document_generator.format_requirements_document(content.strip())
+                except Exception:  # nosec B110
+                    # Continue with original content on formatting error
+                    pass
+            elif document_type == "tasks":
                 try:
                     formatting_result = self.task_formatter.format_task_document(content.strip(), spec)
                     content = formatting_result.formatted_tasks
@@ -346,9 +353,22 @@ class MCPTools:
             # Read the content
             content = file_path.read_text(encoding="utf-8")
 
-            # Apply task formatting if this is a tasks document
+            # Apply document-specific formatting
             formatting_changes = []
-            if document_type == "tasks":
+            if document_type == "requirements":
+                try:
+                    original_content = content
+                    content = self.document_generator.format_requirements_document(content)
+
+                    # Save the formatted content back to file if changes were made
+                    if content != original_content:
+                        file_path.write_text(content, encoding="utf-8")
+                        formatting_changes = ["Requirements document formatted with proper structure and numbering"]
+
+                except Exception as e:
+                    # Log formatting error but don't fail the read operation
+                    formatting_changes = [f"Requirements formatting failed: {str(e)}"]
+            elif document_type == "tasks":
                 try:
                     formatting_result = self.task_formatter.format_task_document(content, spec)
                     content = formatting_result.formatted_tasks
@@ -469,13 +489,22 @@ class MCPTools:
                 )
         else:
             # Get next task to execute
-            task = self.task_executor.get_next_task(tasks)
-            if not task:
+            next_task = self.task_executor.get_next_task(tasks)
+            if not next_task:
                 raise MCPToolsError(
                     f"No tasks available for execution in spec '{feature_name}'",
                     error_code="NO_TASKS_AVAILABLE",
                     details={"feature_name": feature_name},
                 )
+            # Convert Task to dict format for consistency
+            task = {
+                "identifier": next_task.identifier,
+                "description": next_task.description,
+                "status": next_task.status.value if hasattr(next_task.status, "value") else next_task.status,
+                "requirements_refs": next_task.requirements_refs,
+                "parent_task": next_task.parent_task,
+                "sub_tasks": next_task.sub_tasks,
+            }
 
         try:
             # Get task identifier (handle both Task objects and dictionaries)

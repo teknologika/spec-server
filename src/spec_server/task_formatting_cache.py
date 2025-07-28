@@ -157,7 +157,7 @@ class TaskFormattingCache:
         # Cache statistics
         self.stats = {"hits": 0, "misses": 0, "sets": 0, "deletes": 0, "evictions": 0}
 
-    def _generate_key(self, prefix: str, *args, **kwargs) -> str:
+    def _generate_key(self, prefix: str, *args: Any, **kwargs: Any) -> str:
         """Generate a cache key from arguments."""
         # Create a string representation of all arguments
         key_parts = [prefix]
@@ -177,7 +177,7 @@ class TaskFormattingCache:
         # Hash the key to ensure consistent length
         return hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()
 
-    def get_parsed_tasks(self, content: str) -> Optional[List]:
+    def get_parsed_tasks(self, content: str) -> Optional[List[Any]]:
         """Get cached parsed tasks."""
         if not self.config.enable_caching:
             return None
@@ -188,7 +188,7 @@ class TaskFormattingCache:
         if entry is not None:
             self.stats["hits"] += 1
             self.logger.debug(f"Cache hit for parsed tasks: {key}")
-            return entry.value
+            return entry.value  # type: ignore
 
         self.stats["misses"] += 1
         return None
@@ -205,7 +205,7 @@ class TaskFormattingCache:
         self.stats["sets"] += 1
         self.logger.debug(f"Cached parsed tasks: {key}")
 
-    def get_classified_content(self, content: str) -> Optional[List]:
+    def get_classified_content(self, content: str) -> Optional[List[Any]]:
         """Get cached content classification."""
         if not self.config.enable_caching:
             return None
@@ -216,7 +216,7 @@ class TaskFormattingCache:
         if entry is not None:
             self.stats["hits"] += 1
             self.logger.debug(f"Cache hit for classified content: {key}")
-            return entry.value
+            return entry.value  # type: ignore
 
         self.stats["misses"] += 1
         return None
@@ -233,7 +233,7 @@ class TaskFormattingCache:
         self.stats["sets"] += 1
         self.logger.debug(f"Cached classified content: {key}")
 
-    def get_requirements_linking(self, tasks_hash: str, requirements_hash: str) -> Optional[List]:
+    def get_requirements_linking(self, tasks_hash: str, requirements_hash: str) -> Optional[List[Any]]:
         """Get cached requirements linking."""
         if not self.config.enable_caching:
             return None
@@ -244,7 +244,7 @@ class TaskFormattingCache:
         if entry is not None:
             self.stats["hits"] += 1
             self.logger.debug(f"Cache hit for requirements linking: {key}")
-            return entry.value
+            return entry.value  # type: ignore
 
         self.stats["misses"] += 1
         return None
@@ -261,7 +261,7 @@ class TaskFormattingCache:
         self.stats["sets"] += 1
         self.logger.debug(f"Cached requirements linking: {key}")
 
-    def get_parsed_requirements(self, requirements_content: str) -> Optional[Dict]:
+    def get_parsed_requirements(self, requirements_content: str) -> Optional[Dict[Any, Any]]:
         """Get cached parsed requirements."""
         if not self.config.enable_caching:
             return None
@@ -272,7 +272,7 @@ class TaskFormattingCache:
         if entry is not None:
             self.stats["hits"] += 1
             self.logger.debug(f"Cache hit for parsed requirements: {key}")
-            return entry.value
+            return entry.value  # type: ignore
 
         self.stats["misses"] += 1
         return None
@@ -289,7 +289,7 @@ class TaskFormattingCache:
         self.stats["sets"] += 1
         self.logger.debug(f"Cached parsed requirements: {key}")
 
-    def get_llm_validation(self, task_id: str, context_hash: str) -> Optional[Dict]:
+    def get_llm_validation(self, task_id: str, context_hash: str) -> Optional[Dict[Any, Any]]:
         """Get cached LLM validation result."""
         if not self.config.enable_caching:
             return None
@@ -300,7 +300,7 @@ class TaskFormattingCache:
         if entry is not None:
             self.stats["hits"] += 1
             self.logger.debug(f"Cache hit for LLM validation: {key}")
-            return entry.value
+            return entry.value  # type: ignore
 
         self.stats["misses"] += 1
         return None
@@ -381,7 +381,7 @@ class BatchProcessor:
         self.max_batch_size = max_batch_size or self.config.max_batch_size
         self.logger = logging.getLogger(__name__)
 
-    def process_tasks_batch(self, tasks_list: List[List], processor_func, **kwargs) -> List:
+    def process_tasks_batch(self, tasks_list: List[List], processor_func: Any, **kwargs: Any) -> List:
         """Process multiple task lists in batches."""
         if not self.config.batch_processing_enabled:
             # Process individually
@@ -407,7 +407,7 @@ class BatchProcessor:
 
         return results
 
-    def process_content_batch(self, content_list: List[str], processor_func, **kwargs) -> List:
+    def process_content_batch(self, content_list: List[str], processor_func: Any, **kwargs: Any) -> List:
         """Process multiple content strings in batches."""
         if not self.config.batch_processing_enabled:
             return [processor_func(content, **kwargs) for content in content_list]

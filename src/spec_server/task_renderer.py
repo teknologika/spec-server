@@ -3,7 +3,7 @@ Task rendering functionality for converting TaskItem objects back to markdown.
 """
 
 import re
-from typing import List
+from typing import List, Optional
 
 from .models import ContentBlock, TaskItem, TaskStatus
 
@@ -16,7 +16,7 @@ class TaskRenderer:
     hierarchy, status indicators, and requirements references.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the TaskRenderer."""
         # Status symbols mapping
         self.status_symbols = {
@@ -25,7 +25,7 @@ class TaskRenderer:
             "completed": "[x]",
         }
 
-    def render_tasks(self, tasks: List[TaskItem], preserve_content: List[ContentBlock] = None) -> str:
+    def render_tasks(self, tasks: List[TaskItem], preserve_content: Optional[List[ContentBlock]] = None) -> str:
         """
         Render a list of TaskItem objects to standardized markdown.
 
@@ -45,10 +45,22 @@ class TaskRenderer:
         sorted_tasks = self._sort_tasks_hierarchically(tasks)
 
         # Render each task
-        for task in sorted_tasks:
+        for i, task in enumerate(sorted_tasks):
             rendered_task = self._render_single_task(task)
             output.append(rendered_task)
-            output.append("")  # Add spacing between tasks
+
+            # Add spacing between top-level task groups
+            if i < len(sorted_tasks) - 1:
+                current_hierarchy = self._calculate_hierarchy_level(task.identifier)
+                next_task = sorted_tasks[i + 1]
+                next_hierarchy = self._calculate_hierarchy_level(next_task.identifier)
+
+                # Add spacing when transitioning from any task to a top-level task
+                # (unless we're going from one top-level task directly to another)
+                if next_hierarchy == 1 and not (current_hierarchy == 1 and self._get_task_group(task.identifier) == self._get_task_group(next_task.identifier)):
+                    # Only add spacing if we're transitioning between different top-level groups
+                    if self._get_task_group(task.identifier) != self._get_task_group(next_task.identifier):
+                        output.append("")
 
         # Add any preserved content blocks
         if preserve_content:
@@ -109,6 +121,18 @@ class TaskRenderer:
         """
         return len(identifier.split("."))
 
+    def _get_task_group(self, identifier: str) -> str:
+        """
+        Get the top-level task group for a given identifier.
+
+        Args:
+            identifier: Task identifier (e.g., "1", "1.1", "2.3")
+
+        Returns:
+            Top-level group identifier (e.g., "1" for "1.1", "2" for "2.3")
+        """
+        return identifier.split(".")[0]
+
     def _render_single_task(self, task: TaskItem) -> str:
         """
         Render a single TaskItem to markdown format.
@@ -120,7 +144,8 @@ class TaskRenderer:
             Formatted markdown string for the task
         """
         # Get status symbol
-        status_symbol = self.status_symbols.get(task.status, "[ ]")
+        status_key = task.status.value if hasattr(task.status, "value") else str(task.status)
+        status_symbol = self.status_symbols.get(status_key, "[ ]")
 
         # Calculate hierarchy level and indentation
         hierarchy_level = self._calculate_hierarchy_level(task.identifier)

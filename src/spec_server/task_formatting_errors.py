@@ -371,7 +371,13 @@ class TaskFormattingMetrics:
 
     def reset_metrics(self) -> None:
         """Reset all metrics."""
-        self.__init__()
+        self.metrics = {
+            "total_errors": 0,
+            "errors_by_type": {},
+            "errors_by_severity": {},
+            "recovery_attempts": 0,
+            "successful_recoveries": 0,
+        }
 
 
 # Global error handler and metrics instances
@@ -395,7 +401,7 @@ def get_metrics() -> TaskFormattingMetrics:
     return _metrics
 
 
-def handle_error(error_code: TaskFormattingErrorCode, message: str, **kwargs) -> TaskFormattingError:
+def handle_error(error_code: TaskFormattingErrorCode, message: str, **kwargs: Any) -> TaskFormattingError:
     """Convenience function to handle errors."""
     return get_error_handler().handle_error(error_code, message, **kwargs)
 

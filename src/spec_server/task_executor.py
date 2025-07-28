@@ -7,7 +7,7 @@ tracks completion status, and provides execution context.
 """
 
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from .models import Spec, Task, TaskStatus
 from .task_parser import TaskParser
@@ -200,7 +200,7 @@ class TaskExecutor:
 
         return None
 
-    def update_task_status(self, spec: Spec, task_identifier: str, status: TaskStatus) -> Dict[str, str]:
+    def update_task_status(self, spec: Spec, task_identifier: str, status: TaskStatus) -> Dict[str, Any]:
         """
         Update task status in the tasks.md content using the standardized format.
 
@@ -230,8 +230,8 @@ class TaskExecutor:
         for task_item in task_items:
             if task_item.identifier == task_identifier:
                 target_task = task_item
-                # Update the status (convert enum to string)
-                task_item.status = status.value
+                # Update the status
+                task_item.status = status
                 break
 
         if not target_task:
@@ -298,7 +298,7 @@ class TaskExecutor:
             tasks_content=tasks_content,
         )
 
-    def get_task_by_identifier(self, spec: Spec, identifier: str) -> Optional[Dict[str, str]]:
+    def get_task_by_identifier(self, spec: Spec, identifier: str) -> Optional[Dict[str, Any]]:
         """
         Find a task by its identifier using the standardized format.
 
