@@ -149,7 +149,7 @@ class TestGetPhaseGuidanceContent:
 
         # Check specific content
         assert "Should we use a particular development methodology?" in guidance["questions_to_ask"]
-        assert "# Implementation Tasks for [Feature Name]" in guidance["template"]
+        assert "# Implementation Plan" in guidance["template"]
 
     def test_get_general_guidance(self):
         """Test getting general guidance."""
